@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
 
-from MGA import EmailSender
+from MGA import EmailSender, MakeRandomPassword
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
 from MGA.serializers import UserSerializer
@@ -60,7 +60,7 @@ def signup_user(request):
             user.save()
             login(request, user)
 
-            EmailSender.EmailSender.send_email(email, "Click here to confirm " + serializer.url, 'Confirm')
+            EmailSender.EmailSender.send_email(email, "Click here to confirm " + serializer.confirm_url, 'Confirm')
 
             return Response(status='Please confirm your Email')
         else:
@@ -80,7 +80,7 @@ def confirm_email(request, id):
 
 
 @api_view(IsOwnerOrAdmin)
-def change_password(request):
+def change_password(request): #TODO bug dare fekr konam
     newPassword = request.POST['newPassword']
     oldPassword = request.POST['oldPassword']
     id = request.POST['id']
@@ -92,5 +92,11 @@ def change_password(request):
 
 @api_view(AllowAny)
 def reset_password(request):
-    # TODO send sth to emil
-    return Response(status='We send sth to your email')
+    id = request.POST['id']
+    user = User.objects.get(id=id)
+    new_password = MakeRandomPassword.MakeRandomPassword.make_pass()
+    EmailSender.EmailSender.send_email(user.email,
+                                       "Your new Password" + new_password, "Reset Password")
+
+    # TODO change password in db
+    return Response(status='We send a new password to your email')

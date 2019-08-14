@@ -7,14 +7,14 @@ from MGA.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    url = HyperlinkedIdentityField(
+    confirm_url = HyperlinkedIdentityField(
         view_name='MGA:confirm',
         lookup_field='id'
     )
 
     class Meta:
         model = User,
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password', 'url']
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']
 
     def validate_username(self, value):
         qs = User.objects.filter(username__exact=value)
