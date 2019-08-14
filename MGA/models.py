@@ -9,3 +9,4 @@ class User(models.Model):
     phoneNumber = models.BigIntegerField()
     city = models.CharField(max_length=200)
     email = models.EmailField()
+    confirm = models.BooleanField(default=False)
