@@ -1,11 +1,14 @@
 from django.contrib.auth import login, authenticate, models, logout
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 
 from rest_framework import status
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
+from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
 
+from MGA import EmailSender
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
 from MGA.serializers import UserSerializer
@@ -40,7 +43,7 @@ def login_user(request):
 
 
 @login_required
-def logout_func(request):
+def logout_user(request):
     logout(request)
     return Response(status='logout successfully')
 
@@ -49,12 +52,16 @@ def signup_user(request):
     try:
         username = request.POST['username']
         password = request.POST['password']
+        email = request.POST['email']
         serializer = UserSerializer(request.data)
         if serializer.is_valid:
             serializer.save()
             user = models.User.objects.create(username=username, password=password)
             user.save()
             login(request, user)
+
+            EmailSender.EmailSender.send_email(email, "Click here to confirm " + serializer.url, 'Confirm')
+
             return Response(status='Please confirm your Email')
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -63,14 +70,13 @@ def signup_user(request):
         return Response(status='Sorry! There is a problem')
 
 
-def confirm_email(request):
-    success = request.POST['success']
-    if success:
-        id = request.POST['id']
+def confirm_email(request, id):
+    try:
         user = User.objects.get(id=id)
         user.confirm = True
         return Response(status=status.HTTP_200_OK)
-    return Response(status='Please confirm your Email')
+    except:
+        return Response(status='Please confirm your Email')
 
 
 @api_view(IsOwnerOrAdmin)

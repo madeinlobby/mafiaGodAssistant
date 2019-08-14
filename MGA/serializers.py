@@ -1,14 +1,20 @@
 import re
 
 from rest_framework import serializers
+from rest_framework.relations import HyperlinkedIdentityField
 
 from MGA.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    url = HyperlinkedIdentityField(
+        view_name='MGA:confirm',
+        lookup_field='id'
+    )
+
     class Meta:
         model = User,
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password', 'url']
 
     def validate_username(self, value):
         qs = User.objects.filter(username__exact=value)
