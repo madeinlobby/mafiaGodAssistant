@@ -8,13 +8,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
 
-from MGA import EmailSender, MakeRandomPassword
-from MGA.models import User
-from MGA.permissions import IsOwnerOrAdmin
-from MGA.serializers import UserSerializer
+from . import EmailSender, MakeRandomPassword
+from .models import User
+from .permissions import IsOwnerOrAdmin
+from .serializers import UserSerializer
 
 # TODO Question
-from MGA.views.UserViews import put_user
+from .view.UserViews import put_user
 
 """
  1.general inja bashe khobe?
