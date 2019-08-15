@@ -22,7 +22,7 @@ from .view.UserViews import put_user
 """
 
 
-@permission_classes(AllowAny)
+@permission_classes([AllowAny])
 def login_user(request):
     username = request.POST['username']
     password = request.POST['password']
@@ -79,7 +79,7 @@ def confirm_email(request, id):
         return Response(status='Please confirm your Email')
 
 
-@api_view(IsOwnerOrAdmin)
+@permission_classes([IsOwnerOrAdmin])
 def change_password(request): #TODO bug dare fekr konam
     newPassword = request.POST['newPassword']
     oldPassword = request.POST['oldPassword']
@@ -90,7 +90,7 @@ def change_password(request): #TODO bug dare fekr konam
     return Response('Your password is Wrong!')
 
 
-@api_view(AllowAny)
+@permission_classes([AllowAny])
 def reset_password(request):
     id = request.POST['id']
     user = User.objects.get(id=id)
