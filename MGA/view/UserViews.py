@@ -1,5 +1,6 @@
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
@@ -11,6 +12,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
  1.mishe id ro kolan hazf kard ba resquest.POST['id'] bedast avord?
  2.return ha injori bashe okeye? 
 """
+
+
+class User_G_D(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 @api_view(['GET'])
@@ -48,3 +54,8 @@ def delete_user(request, id):
     user = User.objects.get(id=id)
     user.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UserList(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

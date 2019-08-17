@@ -1,5 +1,7 @@
 from django.core.mail import send_mail
 
+from mafiaGodAssistant import settings
+
 
 class EmailSender:
 
@@ -8,7 +10,7 @@ class EmailSender:
         send_mail(
             subject,
             message,
-            'z.y.j.1379@gmail.com',
+            settings.EMAIL_HOST_USER,
             [email],
             fail_silently=False,
         )

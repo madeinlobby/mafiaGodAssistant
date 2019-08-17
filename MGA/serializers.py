@@ -12,10 +12,6 @@ class UserSerializer(serializers.ModelSerializer):
         lookup_field='id'
     )
 
-    class Meta:
-        model = User,
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']
-
     def validate_username(self, value):
         qs = User.objects.filter(username__exact=value)
         if self.instance:
@@ -46,3 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
         if not re.search("[0-9]", value) & re.search("[!@#$%^&*]", value):
             raise serializers.ValidationError("Weak password!")
         return value
+
+    class Meta:
+        model = User,
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']

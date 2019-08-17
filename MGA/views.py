@@ -25,7 +25,7 @@ from .view.UserViews import put_user
 @permission_classes([AllowAny])
 def login_user(request):
     username = request.POST['username']
-    password = request.POST['password']
+    password = request.POST['passwourd']
     if username and password:
         user = authenticate(username=username, password=password)
         if not username:
