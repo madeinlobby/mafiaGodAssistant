@@ -26,6 +26,7 @@ class Event(models.Model):
 
 
 class Organization(models.Model):
+    name = models.CharField(max_length=200)
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     # admins todo
 

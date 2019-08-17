@@ -3,7 +3,7 @@ import re
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
-from MGA.models import User
+from MGA.models import User, Event, Organization
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -20,7 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Username should be unique")
         return value
 
-    def validate_phoneNumber(self, value):
+    def validate_phone_number(self, value):
         if len(value) != 11:
             raise serializers.ValidationError("Your phone number should have 11 digits")
         rule = re.compile(r'/^09[0-9]{9}$/')
@@ -46,3 +46,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User,
         fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']
+
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['location', 'date', 'capacity', 'owner', 'memebers', 'title', 'description']
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        fields = ['name', 'creator', 'admins']
