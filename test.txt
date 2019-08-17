@@ -1,0 +1,18 @@
+from MGA.models import User, Event, Organization
+user = User.objects.create(name = 'test', username = 'test', password = 'test123456', phoneNumber = '09121234567', email = 'aa@yahoo.com', confirm = 'True', city = 'Teh')
+user.save()
+user2 = User.objects.create(name = 'test2', username = 'test2', password = 'test123456', phoneNumber = '09121234567', email = 'aa@yahoo.com', confirm = 'True', city = 'Teh')
+user2.save()
+event = Event.objects.create(capacity = 10, title = 'hello', owner = user)
+event.members.add(user)
+event.members.add(user2)
+event.save()
+
+from MGA.serializers import UserSerializer, EventSerializer
+
+ser = EventSerializer(event)
+ser.data()
+
+
+
+AssertionError: The field 'confirm_url' was declared on serializer UserSerializer, but has not been included in the 'fields' option. :(

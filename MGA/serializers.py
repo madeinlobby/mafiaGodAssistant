@@ -44,17 +44,21 @@ class UserSerializer(serializers.ModelSerializer):
         return value
 
     class Meta:
-        model = User,
+        model = User
         fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']
 
 
 class EventSerializer(serializers.ModelSerializer):
+    members = UserSerializer(read_only=True, many=True)  # todo am i doing this right?
+
     class Meta:
         model = Event
-        fields = ['location', 'date', 'capacity', 'owner', 'memebers', 'title', 'description']
+        fields = [ 'date', 'capacity', 'owner', 'members', 'title', 'description']
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
+    admins = UserSerializer(read_only=True, many=True)  # todo am i doing this right?
+
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
