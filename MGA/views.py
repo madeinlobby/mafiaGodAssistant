@@ -2,7 +2,7 @@ from django.contrib.auth import login, authenticate, models, logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.relations import HyperlinkedIdentityField
@@ -102,7 +102,7 @@ def reset_password(request):
     return Response(status='We send a new password to your email')
 
 
-@api_view
+@api_view(['GET', 'PUT', 'POST'])
 def event_list(request):
     if request.method == 'GET':
         events = Event.objects.all()
@@ -110,6 +110,27 @@ def event_list(request):
         return Response(serializer.data)
     if request.method == 'POST':
         serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(status=status.HTTP_404_NOT_FOUND)
+
+# todo this v or that ^?
+
+
+class EventList(generics.ListCreateAPIView):
+    queryset = Event.objects.all()
+    serializer_class = EventSerializer
+
+
+@api_view(['GET', 'PUT', 'POST'])
+def organization_list(request):
+    if request.method == 'GET':
+        organizations = Organization.objects.all()
+        serializer = OrganizationSerializer(organizations, many=True)
+        return Response(serializer.data)
+    if request.method == 'POST':
+        serializer = OrganizationSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
