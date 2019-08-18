@@ -11,21 +11,21 @@ from rest_framework.response import Response
 from . import EmailSender, MakeRandomPassword
 from .models import User
 from .permissions import IsOwnerOrAdmin
-from .serializers import UserSerializer
+from .serializers import PUserSerializer
 
 # TODO Question
 from .view.UserViews import put_user
 
 """
  1.general inja bashe khobe?
- 2.signup ro hatamal check she
+ 2.signup ro hataman check she
 """
 
 
 @permission_classes([AllowAny])
 def login_user(request):
     username = request.POST['username']
-    password = request.POST['passwourd']
+    password = request.POST['password']
     if username and password:
         user = authenticate(username=username, password=password)
         if not username:
@@ -53,7 +53,7 @@ def signup_user(request):
         username = request.POST['username']
         password = request.POST['password']
         email = request.POST['email']
-        serializer = UserSerializer(request.data)
+        serializer = PUserSerializer(request.data)
         if serializer.is_valid:
             serializer.save()
             user = models.User.objects.create(username=username, password=password)

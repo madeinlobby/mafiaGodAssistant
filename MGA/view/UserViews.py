@@ -1,10 +1,9 @@
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
-from MGA.serializers import UserSerializer
+from MGA.serializers import PUserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 # TODO Question
@@ -16,21 +15,21 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 
 class User_G_D(generics.CreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = PUserSerializer
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user(request, id):
     user = User.objects.get(id=id)
-    serializer = UserSerializer(user)
+    serializer = PUserSerializer(user)
     return Response(serializer.data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def post_user(request):
-    serializer = UserSerializer(data=request.data)
+    serializer = PUserSerializer(data=request.data)
     if serializer.is_valid:
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -41,7 +40,7 @@ def post_user(request):
 @permission_classes([IsOwnerOrAdmin])
 def put_user(request, id):
     user = User.objects.get(id=id)
-    serializer = UserSerializer(user, data=request)
+    serializer = PUserSerializer(user, data=request)
     if serializer.is_valid:
         serializer.save()
         return Response(serializer.data)
@@ -58,4 +57,4 @@ def delete_user(request, id):
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = PUserSerializer

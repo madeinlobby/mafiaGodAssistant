@@ -6,7 +6,7 @@ from rest_framework.relations import HyperlinkedIdentityField
 from MGA.models import User, Event, Organization
 
 
-class UserSerializer(serializers.ModelSerializer):
+class PUserSerializer(serializers.ModelSerializer):
     confirm_url = HyperlinkedIdentityField(
         view_name='MGA:confirm',
         lookup_field='id'
@@ -45,19 +45,19 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password']
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password','confirm_url']
 
 
 class EventSerializer(serializers.ModelSerializer):
-    members = UserSerializer(read_only=True, many=True)  # todo am i doing this right?
+    members = PUserSerializer(read_only=True, many=True)  # todo am i doing this right?
 
     class Meta:
         model = Event
-        fields = [ 'date', 'capacity', 'owner', 'members', 'title', 'description']
+        fields = ['date', 'capacity', 'owner', 'members', 'title', 'description']
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    admins = UserSerializer(read_only=True, many=True)  # todo am i doing this right?
+    admins = PUserSerializer(read_only=True, many=True)  # todo am i doing this right?
 
     class Meta:
         model = Organization

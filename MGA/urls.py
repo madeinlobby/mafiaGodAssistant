@@ -7,6 +7,7 @@ app_name = 'MGA'
 
 urlpatterns = [
     path('confirm/<int:id>/', views.confirm_email, name='confirm'),
-    path('getUser/', UserViews.UserList.as_view()),
-    path('create/',UserViews.User_G_D.as_view())
+    path('getUsers/', UserViews.UserList.as_view(), name="users"),
+    path('create/', UserViews.User_G_D.as_view(), name='create')
+
 ]

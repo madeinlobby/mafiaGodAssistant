@@ -8,11 +8,11 @@ event.members.add(user)
 event.members.add(user2)
 event.save()
 
-from MGA.serializers import UserSerializer, EventSerializer
+from MGA.serializers import PUserSerializer, EventSerializer
 
 ser = EventSerializer(event)
 ser.data()
 
 
 
-AssertionError: The field 'confirm_url' was declared on serializer UserSerializer, but has not been included in the 'fields' option. :(
+AssertionError: The field 'confirm_url' was declared on serializer PUserSerializer, but has not been included in the 'fields' option. :(
