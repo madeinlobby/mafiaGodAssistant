@@ -102,6 +102,15 @@ def reset_password(request):
     return Response(status='We send a new password to your email')
 
 
+@api_view(['GET'])
+def event_details(request, pk):
+    if request.method == 'GET':
+        event = Event.objects.all().get(pk=pk)
+        serializer = EventSerializer(event)
+        return Response(serializer.data)
+    return Response(status=status.HTTP_404_NOT_FOUND)
+
+
 @api_view(['GET', 'PUT', 'POST'])
 def event_list(request):
     if request.method == 'GET':
