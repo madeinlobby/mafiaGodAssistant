@@ -9,9 +9,9 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
 
 from . import EmailSender, MakeRandomPassword
-from .models import User
+from .models import User, Event, Organization
 from .permissions import IsOwnerOrAdmin
-from .serializers import PUserSerializer
+from .serializers import PUserSerializer, EventSerializer, OrganizationSerializer
 
 # TODO Question
 from .view.UserViews import put_user
@@ -100,3 +100,18 @@ def reset_password(request):
 
     # TODO change password in db
     return Response(status='We send a new password to your email')
+
+
+@api_view
+def event_list(request):
+    if request.method == 'GET':
+        events = Event.objects.all()
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)
+    if request.method == 'POST':
+        serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(status=status.HTTP_404_NOT_FOUND)
+
