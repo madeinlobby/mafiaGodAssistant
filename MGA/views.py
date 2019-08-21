@@ -132,16 +132,22 @@ class EventList(generics.ListCreateAPIView):
     serializer_class = EventSerializer
 
 
-@api_view(['GET', 'PUT', 'POST'])
-def organization_list(request):
-    if request.method == 'GET':
-        organizations = Organization.objects.all()
-        serializer = OrganizationSerializer(organizations, many=True)
-        return Response(serializer.data)
-    if request.method == 'POST':
-        serializer = OrganizationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(status=status.HTTP_404_NOT_FOUND)
+# @api_view(['GET', 'PUT', 'POST'])
+# def organization_list(request):
+#     if request.method == 'GET':
+#         organizations = Organization.objects.all()
+#         serializer = OrganizationSerializer(organizations, many=True)
+#         return Response(serializer.data)
+#     if request.method == 'POST':
+#         serializer = OrganizationSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class OrganizationList(generics.ListCreateAPIView):
+    queryset = Organization.objects.all()
+    serializer_class = OrganizationSerializer
+
 

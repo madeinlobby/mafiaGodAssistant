@@ -11,5 +11,5 @@ urlpatterns = [
     path('create/', UserViews.User_G_D.as_view(), name='create'),
     path('events/', views.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', views.event_details, name='event_details'),
-    path('organizations/', views.organization_list, name='organizations_list')
+    path('organizations/', views.OrganizationList.as_view(), name='organizations_list')
 ]
