@@ -57,7 +57,9 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
+
     admins = PUserSerializer(read_only=True, many=True)
+
 
     class Meta:
         model = Organization
