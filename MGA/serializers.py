@@ -49,15 +49,17 @@ class PUserSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(serializers.ModelSerializer):
-    members = PUserSerializer(read_only=True, many=True)  # todo am i doing this right?
+    members = PUserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Event
-        fields = ['date', 'capacity', 'owner', 'members', 'title', 'description']
+        fields = ['date', 'capacity', 'owner', 'members', 'title', 'description']  # todo add location
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    admins = PUserSerializer(read_only=True, many=True)  # todo am i doing this right?
+
+    admins = PUserSerializer(read_only=True, many=True)
+
 
     class Meta:
         model = Organization
