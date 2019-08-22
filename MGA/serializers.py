@@ -20,7 +20,7 @@ class PUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Username should be unique")
         return value
 
-    def validate_phone_number(self, value):
+    def validate_phoneNumber(self, value):
         if len(value) != 11:
             raise serializers.ValidationError("Your phone number should have 11 digits")
         rule = re.compile(r'/^09[0-9]{9}$/')

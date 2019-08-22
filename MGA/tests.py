@@ -9,6 +9,7 @@ from rest_framework.test import APITestCase, URLPatternsTestCase
 #         factory = APIRequestFactory()
 #         request = factory.post('/signup/', {'username': 'zahra', 'password': 'zahra12345'})
 #         self.assertIs(request, False)
+from MGA.models import User
 
 
 class UserAPITests(APITestCase):
@@ -29,5 +30,5 @@ class UserAPITests(APITestCase):
         data = {'username': 'saba', 'password': 'saba12345'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # self.assertEqual(A.objects.count(), 1)
+        # self.assertEqual(User.objects.count(), 1)
         # self.assertEqual(Account.objects.get().name, 'DabApps')
