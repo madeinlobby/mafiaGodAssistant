@@ -1,6 +1,8 @@
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
 from MGA.serializers import PUserSerializer
@@ -11,11 +13,6 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
  1.mishe id ro kolan hazf kard ba resquest.POST['id'] bedast avord?
  2.return ha injori bashe okeye? 
 """
-
-
-class User_G_D(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = PUserSerializer
 
 
 @api_view(['GET'])
@@ -58,3 +55,10 @@ def delete_user(request, id):
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = PUserSerializer
+
+
+class UserRegistration(APIView):
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    renderer_classes = (UserJSONRenderer,)
+    serializer_class = StudentRegistrationSerializer

@@ -24,22 +24,22 @@ from .view.UserViews import put_user
 
 @permission_classes([AllowAny])
 def login_user(request):
-    username = request.POST['username']
-    password = request.POST['password']
+    username = request.POST.get('username')
+    password = request.POST.get('password')
     if username and password:
         user = authenticate(username=username, password=password)
         if not username:
-            return Response(status='Incorrect username')
+            return Response(status=status.HTTP_404_NOT_FOUND)
         if not user.check_password(password):
-            return Response(status='Incorrect password')
+            return Response(status=status.HTTP_404_NOT_FOUND)
         if not user.is_active:
-            return Response(status='It is not active')
+            return Response(status=status.HTTP_404_NOT_FOUND)
         else:
             login(request, user)
             return Response(status=status.HTTP_200_OK)
             # TODO go to another page
     else:
-        return Response(status='Sorry! There is a problem!')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 @login_required
@@ -50,11 +50,11 @@ def logout_user(request):
 
 def signup_user(request):
     try:
-        username = request.POST['username']
-        password = request.POST['password']
-        email = request.POST['email']
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
         serializer = PUserSerializer(request.data)
-        if serializer.is_valid:
+        if serializer.is_valid():
             serializer.save()
             user = models.User.objects.create(username=username, password=password)
             user.save()
