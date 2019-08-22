@@ -1,7 +1,7 @@
 from django.db import models
 # from django.contrib.auth.models import User
 from django.utils import timezone
-
+from django.core.validators import FileExtensionValidator
 
 # from rest_framework_jwt.serializers import User
 # from django.contrib.gis.db import models
@@ -21,8 +21,12 @@ class User(models.Model):
 
 # azash inherih mikonam yadam bashe!
 
+
+
+
 class Event(models.Model):
     # location todo
+
     date = models.DateTimeField(default=timezone.now)
     capacity = models.IntegerField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
@@ -36,3 +40,6 @@ class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
     admins = models.ManyToManyField(User, related_name='admins')  # todo + by default creator needs to be admin
+
+
+

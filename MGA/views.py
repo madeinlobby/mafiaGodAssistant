@@ -2,7 +2,7 @@ from django.contrib.auth import login, authenticate, models, logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 
-from rest_framework import status, generics
+from rest_framework import status, generics, viewsets
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.relations import HyperlinkedIdentityField
@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from . import EmailSender, MakeRandomPassword
 from .models import User, Event, Organization
 from .permissions import IsOwnerOrAdmin
-from .serializers import PUserSerializer, EventSerializer, OrganizationSerializer
+from .serializers import PUserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer
 
 # TODO Question
 from .view.UserViews import put_user
@@ -149,5 +149,15 @@ class EventList(generics.ListCreateAPIView):
 class OrganizationList(generics.ListCreateAPIView):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return OrganizationCreateSerializer
+        return OrganizationSerializer
+
+
+
+
+
 
 
