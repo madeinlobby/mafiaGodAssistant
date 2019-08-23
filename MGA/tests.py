@@ -2,7 +2,6 @@ from django.urls import include, path, reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, URLPatternsTestCase
 
-
 # class UserModelTests(TestCase):
 #
 #     def create_user(self):
@@ -32,3 +31,12 @@ class UserAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # self.assertEqual(User.objects.count(), 1)
         # self.assertEqual(Account.objects.get().name, 'DabApps')
+
+    def test_create_user(self):
+        """
+             Ensure signup is ok!
+        """
+        url = reverse('login')
+        data = {'username': 'ssd', 'password': 'saba12345'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

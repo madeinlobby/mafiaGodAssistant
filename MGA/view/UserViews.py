@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
-from MGA.serializers import PUserSerializer
+from MGA.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 # TODO Question
@@ -19,14 +19,14 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 @permission_classes([IsAuthenticated])
 def get_user(request, id):
     user = User.objects.get(id=id)
-    serializer = PUserSerializer(user)
+    serializer = UserSerializer(user)
     return Response(serializer.data)
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def post_user(request):
-    serializer = PUserSerializer(data=request.data)
+    serializer = UserSerializer(data=request.data)
     if serializer.is_valid:
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -37,7 +37,7 @@ def post_user(request):
 @permission_classes([IsOwnerOrAdmin])
 def put_user(request, id):
     user = User.objects.get(id=id)
-    serializer = PUserSerializer(user, data=request)
+    serializer = UserSerializer(user, data=request)
     if serializer.is_valid:
         serializer.save()
         return Response(serializer.data)
@@ -54,11 +54,6 @@ def delete_user(request, id):
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
-    serializer_class = PUserSerializer
+    serializer_class = UserSerializer
 
 
-class UserRegistration(APIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    renderer_classes = (UserJSONRenderer,)
-    serializer_class = StudentRegistrationSerializer

@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from . import EmailSender, MakeRandomPassword
 from .models import User, Event, Organization
 from .permissions import IsOwnerOrAdmin
-from .serializers import PUserSerializer, EventSerializer, OrganizationSerializer
+from .serializers import UserSerializer, EventSerializer, OrganizationSerializer
 
 # TODO Question
 from .view.UserViews import put_user
@@ -53,7 +53,7 @@ def signup_user(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         email = request.POST.get('email')
-        serializer = PUserSerializer(request.data)
+        serializer = UserSerializer(request.data)
         if serializer.is_valid():
             serializer.save()
             user = models.User.objects.create(username=username, password=password)

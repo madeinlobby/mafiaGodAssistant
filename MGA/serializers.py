@@ -6,10 +6,15 @@ from rest_framework.relations import HyperlinkedIdentityField
 from MGA.models import User, Event, Organization
 
 
-class PUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     confirm_url = HyperlinkedIdentityField(
         view_name='MGA:confirm',
         lookup_field='id'
+    )
+    password = serializers.CharField(
+        max_length=128,
+        min_length=4,
+        write_only=True
     )
 
     def validate_username(self, value):
@@ -43,13 +48,16 @@ class PUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Weak password!")
         return value
 
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
+
     class Meta:
         model = User
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password','confirm_url']
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password', 'confirm_url']
 
 
 class EventSerializer(serializers.ModelSerializer):
-    members = PUserSerializer(read_only=True, many=True)
+    members = UserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Event
@@ -57,9 +65,7 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-
-    admins = PUserSerializer(read_only=True, many=True)
-
+    admins = UserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Organization
