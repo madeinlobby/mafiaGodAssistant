@@ -66,9 +66,22 @@ class EventSerializer(serializers.ModelSerializer):
         fields = ['date', 'capacity', 'owner', 'members', 'title', 'description']  # todo add location
 
 
+class OrganizationCreateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Organization
+        fields = ['name', 'creator', 'admins']
+
+
+
+
+
+
 class OrganizationSerializer(serializers.ModelSerializer):
     admins = UserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
+
+

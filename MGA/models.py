@@ -4,6 +4,7 @@ from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 
 
 class Token(models.Model):
@@ -23,7 +24,7 @@ class UserManager(BaseUserManager):
         user = self.create_user(name, username, password, bio, phoneNumber, city, email)
         user.is_staff = True
         user.is_admin = True
-        user.is_superuser=True
+        user.is_superuser = True
         user.save(using=self._db)
         return user
 
@@ -46,6 +47,7 @@ class User(AbstractUser):
 
 class Event(models.Model):
     # location todo
+
     date = models.DateTimeField(default=timezone.now)
     capacity = models.IntegerField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
