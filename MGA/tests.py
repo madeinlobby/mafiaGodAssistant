@@ -36,7 +36,8 @@ class UserAPITests(APITestCase):
         """
              Ensure signup is ok!
         """
-        url = reverse('login')
-        data = {'username': 'ssd', 'password': 'saba12345'}
+        url = reverse('signup')
+        data = {'username': 'ctest', 'name': 'name', 'password': 'ctest12345', 'bio': 'bio',
+                'phoneNumber': '9382593895', 'city': 'tehran', 'email': 'z.y.j.1379@gmail.com'}
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

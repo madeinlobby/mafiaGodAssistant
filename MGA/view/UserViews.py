@@ -27,9 +27,11 @@ def get_user(request, id):
 @permission_classes([AllowAny])
 def post_user(request):
     serializer = UserSerializer(data=request.data)
-    if serializer.is_valid:
+    context = {'request': request}
+    if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    print(serializer.errors)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
