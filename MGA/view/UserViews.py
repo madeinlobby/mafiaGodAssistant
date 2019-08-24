@@ -1,7 +1,6 @@
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from MGA.models import User
 from MGA.permissions import IsOwnerOrAdmin
@@ -23,11 +22,14 @@ def get_user(request, id):
     return Response(serializer.data)
 
 
-@api_view(['POST'])
 @permission_classes([AllowAny])
 def post_user(request):
-    serializer = UserSerializer(data=request.data)
-    context = {'request': request}
+    serializer_context = {
+        'request': request,
+    }
+
+    serializer = UserSerializer(data=request.data, context=serializer_context)
+
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -35,14 +37,16 @@ def post_user(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['PUT'])
 @permission_classes([IsOwnerOrAdmin])
 def put_user(request, id):
+    serializer_context = {
+        'request': request,
+    }
     user = User.objects.get(id=id)
-    serializer = UserSerializer(user, data=request)
-    if serializer.is_valid:
+    serializer = UserSerializer(user, data=request.data, context=serializer_context)
+    if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -57,5 +61,3 @@ def delete_user(request, id):
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
-

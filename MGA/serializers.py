@@ -42,10 +42,10 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Your password is too short! It must be between 5 and 15 characters")
         if len(str(value)) > 15:
             raise serializers.ValidationError("Your password is too long! It must be between 5 and 15 characters")
-        if not re.search(r'[A-Z]|[a-z]', value) :
+        if not re.search(r'[A-Z]|[a-z]', value):
             if not re.search("[!@#$%^&*]", value):
                 raise serializers.ValidationError("Weak password!")
-        if not re.search("[0-9]", value) :
+        if not re.search("[0-9]", value):
             if not re.search("[!@#$%^&*]", value):
                 raise serializers.ValidationError("Weak password!")
         return value
@@ -55,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password', 'confirm_url']
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password', 'confirm', 'confirm_url']
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -67,14 +67,9 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class OrganizationCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
-
-
-
-
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -83,5 +78,3 @@ class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
-
-

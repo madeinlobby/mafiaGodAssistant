@@ -1,5 +1,5 @@
+import random
 import string
-from random import randrange, random
 
 
 class MakeRandomPassword:
@@ -7,10 +7,10 @@ class MakeRandomPassword:
     @staticmethod
     def random_string_digits(string_length=6):
         letters_digits = string.ascii_letters + string.digits
-        return ''.join(random.choice(letters_digits) for i in range(string_length))
+        return ''.join(random.choices(letters_digits, k=string_length))
 
     @staticmethod
     def make_pass():
-        first_part = randrange(100, 500)
+        first_part = random.randrange(100, 500)
         second_part = MakeRandomPassword.random_string_digits(8)
-        return second_part + first_part
+        return second_part + str(first_part)

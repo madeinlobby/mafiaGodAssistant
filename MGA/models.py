@@ -1,10 +1,8 @@
-import jwt
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from django.core.validators import FileExtensionValidator
 
 
 class Token(models.Model):
@@ -61,3 +59,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
     admins = models.ManyToManyField(User, related_name='admins')  # todo + by default creator needs to be admin
+
+
+class Friend(models.Model):
+    friends = models.ManyToManyField(User, related_name='friends')
