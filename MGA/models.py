@@ -45,12 +45,10 @@ class User(AbstractUser):
 
 class Event(models.Model):
     # location todo
-
     date = models.DateTimeField(default=timezone.now)
     capacity = models.IntegerField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
-    # event ?
-    members = models.ManyToManyField(User, blank=True, related_name='members')  # todo
+    members = models.ManyToManyField(User, blank=True, related_name='members', default=None)  # todo
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=300, blank=True, null=True)
 
@@ -75,8 +73,9 @@ class Ban(models.Model):
 class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
-    admins = models.ManyToManyField(User, related_name='admins')  # todo + by default creator needs to be admin
+    admins = models.ManyToManyField(User, related_name='admins' , default=None)  # todo + by default creator needs to be admin
     bans = models.ManyToManyField(Ban, related_name='bans', default=None)
+    events = models.ManyToManyField(Event, related_name='events', default=None)
 
 
 class Friend(models.Model):

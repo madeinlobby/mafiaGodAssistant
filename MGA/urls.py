@@ -11,6 +11,9 @@ urlpatterns = [
     path('friendRequest/', views.send_friendship_request, name='send_friend_request'),
     path('friendAccept/', views.accept_friendship_request, name='accept_friend_request'),
     path('notifications/', views.get_not_read_notification, name='getNotification'),
+    path('createOrg/', EventViews.add_organization, name='create_organization'),
+    path('add_admin/', EventViews.add_admins, name='add_admin'),
+    path('addEvent/', EventViews.add_event, name='add_event'),
 
     path('events/', EventViews.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', EventViews.event_details, name='event_details'),

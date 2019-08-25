@@ -5,6 +5,7 @@ from django.utils.timezone import now
 
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import permission_classes, api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
@@ -73,39 +74,47 @@ class OrganizationList(generics.ListCreateAPIView):
         return OrganizationSerializer
 
 
-
-
-
-
+@api_view(['GET', 'POST'])
 def add_organization(request):
-    serializer_context = {
-        'request': request,
-    }
-
-    serializer = UserSerializer(data = request.data , request=serializer_context)
-    organs = Organization.objects.create()
-
-    if serializer.is_valid():
-
-        organs.save()
-        serializer.save()
+    try:
+        organization = Organization.objects.create(name=request.data.get('name'),
+                                                   creator=request.user,
+                                                   )
+        serializer = OrganizationSerializer(organization)
+        organization.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-
-
+@api_view(['POST'])
 def add_admins(request):
     admin_id = request.data.get('admin id')
-    users = User.objects.get(id=admin_id)
-    Organization.admins.add(users)
-    return Response(status=status.HTTP_200_OK)
+    organization_id = request.data.get('org_id')
+    organization = Organization.objects.get(id=organization_id)
+    if request.user != organization.creator:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    else:
+        user = User.objects.get(id=admin_id)
+        organization.admins.add(user)
+        return Response(status=status.HTTP_200_OK)
 
 
+def add_event(request):
+    organization_id = request.data.get('org_id')
+    organization = Organization.objects.get(id=organization_id)
+    if request.user in organization.admins or request.user != organization.creator:
+        qs = Event.objects.filter(title__exact=request.data.get('title'))
+        if qs.exists():
+            return ValidationError('Title should be unique')
+        event = Event.objects.create(title=request.data.get('title'),
+                                     description=request.data.get('description'),
+                                     owner=request.user,
+                                     capacity=request.data.get('capacity'),
+                                     date=request.data.get('date')
+                                     )
+        event.save()
+        organization.events.add(event)
+        return Response(status=status.HTTP_201_CREATED)
 
-
-
-
+    return Response(status=status.HTTP_403_FORBIDDEN)

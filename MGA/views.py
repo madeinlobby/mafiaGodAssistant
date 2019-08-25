@@ -194,7 +194,6 @@ def send_ban(request):
     ban = Ban.objects.get(id=ban_id)
     banned_user = ban.user
     banned_reason = GeneralFunctions.make_reported_string(ban.b_reason)
-
     notification = Notification.objects.create(to_user=banned_user, from_user=request.user,
                                                time=now(), text="Ban!!!" +
                                                                 "Reason(s)" + banned_reason)
