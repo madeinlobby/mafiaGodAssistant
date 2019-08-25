@@ -55,11 +55,37 @@ class Event(models.Model):
     description = models.CharField(max_length=300, blank=True, null=True)
 
 
+class Reason(models.Model):
+    text = models.CharField(max_length=300)
+
+    def __str__(self):
+        return self.text
+
+
+class Report(models.Model):
+    r_reason = models.ManyToManyField(Reason, related_name='r_reason')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Ban(models.Model):
+    b_reason = models.ManyToManyField(Reason, related_name='b_reason')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
 class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
     admins = models.ManyToManyField(User, related_name='admins')  # todo + by default creator needs to be admin
+    bans = models.ManyToManyField(Ban, related_name='bans')
 
 
 class Friend(models.Model):
     friends = models.ManyToManyField(User, related_name='friends')
+
+
+class Notification(models.Model):
+    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='from_user')
+    to_user = models.ForeignKey(User,on_delete=models.CASCADE , related_name='to_user', default=None)
+    text = models.TextField()
+    time = models.DateTimeField()
+    read = models.BooleanField(default=False)

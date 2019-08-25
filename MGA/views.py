@@ -1,6 +1,7 @@
 from django.contrib.auth import login, authenticate, models, logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.utils.timezone import now
 
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import permission_classes, api_view
@@ -9,11 +10,13 @@ from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
+from MGA import GeneralFunctions
 from MGA.view import UserViews
 from . import EmailSender, MakeRandomPassword
-from .models import User, Event, Organization
+from .models import User, Event, Organization, Friend, Notification, Reason, Report
 from .permissions import IsOwnerOrAdmin
-from .serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer
+from .serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer, \
+    NotificationSerializer, ReasonSerializer
 
 # TODO Question
 from .view.UserViews import put_user
@@ -101,56 +104,75 @@ def reset_password(request):
     return Response(status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-def event_details(request, pk):
-    if request.method == 'GET':
-        event = Event.objects.all().get(pk=pk)
-        serializer = EventSerializer(event)
-        return Response(serializer.data)
-    return Response(status=status.HTTP_404_NOT_FOUND)
+@api_view(['POST', 'GET'])
+@login_required
+def send_friendship_request(request):
+    try:
+        id = request.data.get('id')
+        user = User.objects.get(id=id)
+        notification = Notification.objects.create(to_user=User.objects.get(id=request.user.id), text="Friendship",
+                                                   time=now(), from_user=request.user)
+        notification.save()
+        # user.notification_set.add(notification)
+        return Response(status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-# @api_view(['GET', 'PUT', 'POST'])
-# def event_list(request):
-#     if request.method == 'GET':
-#         events = Event.objects.all()
-#         serializer = EventSerializer(events, many=True)
-#         return Response(serializer.data)
-#     if request.method == 'POST':
-#         serializer = EventSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(status=status.HTTP_404_NOT_FOUND)
-
-# todo this v or that ^?
+@api_view(['POST', 'GET'])
+def accept_friendship_request(request):
+    try:
+        id = request.data.get('id')
+        user = User.objects.get(id=id)
+        friend = Friend.objects.create()
+        friend.friends.add(user)
+        friend.friends.add(request.user)
+        friend.save()
+        return Response(status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-class EventList(generics.ListCreateAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
+def get_all_notifications(request):
+    id = request.data.get('id')
+    user = User.objects.get(id=id)
+    notifications = Notification.objects.get(to_user=user)
+    notificationSerializer = NotificationSerializer(notifications, many=True)
+    return Response(notificationSerializer.data)
 
 
-# @api_view(['GET', 'PUT', 'POST'])
-# def organization_list(request):
-#     if request.method == 'GET':
-#         organizations = Organization.objects.all()
-#         serializer = OrganizationSerializer(organizations, many=True)
-#         return Response(serializer.data)
-#     if request.method == 'POST':
-#         serializer = OrganizationSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(status=status.HTTP_404_NOT_FOUND)
+def get_not_read_notification(request):
+    id = request.data.get('id')
+    user = User.objects.get(id=id)
+    notifications = Notification.objects.get(to_user=user, read=False)
+    notificationSerializer = NotificationSerializer(notifications, many=True)
+    return Response(notificationSerializer.data)
 
 
-class OrganizationList(generics.ListCreateAPIView):
-    queryset = Organization.objects.all()
-    serializer_class = OrganizationSerializer
+def get_reasons(request):
+    reasons = Reason.objects.all()
+    serializer = ReasonSerializer(reasons, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return OrganizationCreateSerializer
-        return OrganizationSerializer
 
+def create_report(request):
+    reason_pk = request.data.get('reason_pk')
+    user_id = request.data.get('user_id')
+    reason = Reason.objects.get(pk=reason_pk)
+    user = User.objects.get(id=user_id)
+    report = Report.objects.create(user=user, r_reason=reason)
+    report.save()
+
+
+def send_report(request):
+    report_id = request.data.get('report_id')
+    report = Report.objects.get(id=report_id)
+    reported_user = report.user
+    reasons = report.r_reason
+    reason_string = GeneralFunctions.make_reported_string(reasons)
+
+    notification = Notification.objects.create(from_user=request.user, to_user=reported_user
+                                               , text="Reporting!!!" +
+                                                      " Reason(s):" + reason_string,
+                                               time=now())
+    notification.save()

@@ -3,7 +3,7 @@ import re
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
-from MGA.models import User, Event, Organization
+from MGA.models import User, Event, Organization, Notification, Reason
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -78,3 +78,15 @@ class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'
+
+
+class ReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reason
+        fields = '__all__'
