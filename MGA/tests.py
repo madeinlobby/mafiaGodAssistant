@@ -79,7 +79,14 @@ class UserAPITests(APITestCase):
 class EventAPITests(APITestCase):
     userTest = UserAPITests()
 
+    def test_create_organization(self):
+        """
+        Ensure friend request is ok!
+        """
+        url = reverse('MGA:accept_friend_request')
+        data = {'id': 2}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_create_event(self):
         self.userTest.test_login_user()
-
-

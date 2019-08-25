@@ -13,7 +13,7 @@ from rest_framework.reverse import reverse
 from MGA import GeneralFunctions
 from MGA.view import UserViews
 from . import EmailSender, MakeRandomPassword
-from .models import User, Event, Organization, Friend, Notification, Reason, Report
+from .models import User, Event, Organization, Friend, Notification, Reason, Report, Ban
 from .permissions import IsOwnerOrAdmin
 from .serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer, \
     NotificationSerializer, ReasonSerializer
@@ -175,4 +175,27 @@ def send_report(request):
                                                , text="Reporting!!!" +
                                                       " Reason(s):" + reason_string,
                                                time=now())
+    notification.save()
+
+
+def create_ban(request):
+    # organizations_id = request.data.get('organization_id')
+    banned_user_id = request.data.get('banned_id')
+    reason_id = request.data.get('reason_id')
+    banned_user = User.objects.get(id=banned_user_id)
+    ban = Ban.objects.create(reason_id=reason_id, user=banned_user)
+    ban.save()
+
+
+# organization = Organization.objects.get(id=organizations_id)
+
+def send_ban(request):
+    ban_id = request.data.get('ban_id')
+    ban = Ban.objects.get(id=ban_id)
+    banned_user = ban.user
+    banned_reason = GeneralFunctions.make_reported_string(ban.b_reason)
+
+    notification = Notification.objects.create(to_user=banned_user, from_user=request.user,
+                                               time=now(), text="Ban!!!" +
+                                                                "Reason(s)" + banned_reason)
     notification.save()
