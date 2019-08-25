@@ -90,6 +90,7 @@ class Migration(migrations.Migration):
                 ('time', models.DateTimeField()),
                 ('read', models.BooleanField(default=False)),
                 ('from_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('to_user', models.ForeignKey(default=None, on_delete=django.db.models.deletion.CASCADE, related_name='to_user', to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(

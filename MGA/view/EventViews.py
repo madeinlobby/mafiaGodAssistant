@@ -71,3 +71,41 @@ class OrganizationList(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return OrganizationCreateSerializer
         return OrganizationSerializer
+
+
+
+
+
+
+def add_organization(request):
+    serializer_context = {
+        'request': request,
+    }
+
+    serializer = UserSerializer(data = request.data , request=serializer_context)
+    organs = Organization.objects.create()
+
+    if serializer.is_valid():
+
+        organs.save()
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+def add_admins(request):
+    admin_id = request.data.get('admin id')
+    users = User.objects.get(id=admin_id)
+    Organization.admins.add(users)
+    return Response(status=status.HTTP_200_OK)
+
+
+
+
+
+

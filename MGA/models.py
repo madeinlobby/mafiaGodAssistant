@@ -76,7 +76,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
     admins = models.ManyToManyField(User, related_name='admins')  # todo + by default creator needs to be admin
-    bans = models.ManyToManyField(Ban, related_name='bans')
+    bans = models.ManyToManyField(Ban, related_name='bans', default=None)
 
 
 class Friend(models.Model):
