@@ -104,37 +104,6 @@ def reset_password(request):
     return Response(status=status.HTTP_200_OK)
 
 
-<<<<<<< HEAD
-class EventList(generics.ListCreateAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-
-
-# @api_view(['GET', 'PUT', 'POST'])
-# def organization_list(request):
-#     if request.method == 'GET':
-#         organizations = Organization.objects.all()
-#         serializer = OrganizationSerializer(organizations, many=True)
-#         return Response(serializer.data)
-#     if request.method == 'POST':
-#         serializer = OrganizationSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-class OrganizationList(generics.ListCreateAPIView):
-    queryset = Organization.objects.all()
-    serializer_class = OrganizationSerializer
-
-
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return OrganizationCreateSerializer
-        return OrganizationSerializer
-
-=======
 @api_view(['POST', 'GET'])
 @login_required
 def send_friendship_request(request):
@@ -148,7 +117,6 @@ def send_friendship_request(request):
         return Response(status=status.HTTP_200_OK)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
->>>>>>> 6802d92d061c9a4430aa339b8f273219830756e1
 
 
 @api_view(['POST', 'GET'])

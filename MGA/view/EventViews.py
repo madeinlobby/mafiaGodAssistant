@@ -71,4 +71,3 @@ class OrganizationList(generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return OrganizationCreateSerializer
         return OrganizationSerializer
-
