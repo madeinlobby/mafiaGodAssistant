@@ -150,6 +150,7 @@ class OrganizationList(generics.ListCreateAPIView):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
 
+
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return OrganizationCreateSerializer
