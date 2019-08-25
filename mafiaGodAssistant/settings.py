@@ -25,6 +25,8 @@ SECRET_KEY = 'xkdu&8qc5hv6p6915(g@lh)&#1_aw^loyvi9)pm(^!t!z4p5&_'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+# <module_name>.<user_model_name>
+AUTH_USER_MODEL = 'MGA.User'
 
 # Application definition
 
@@ -37,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_jwt'
 ]
 
 MIDDLEWARE = [

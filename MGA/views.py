@@ -1,34 +1,35 @@
 from django.contrib.auth import login, authenticate, models, logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
+from django.utils.timezone import now
 
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
 from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 
+from MGA import GeneralFunctions
+from MGA.view import UserViews
 from . import EmailSender, MakeRandomPassword
-from .models import User, Event, Organization
+from .models import User, Event, Organization, Friend, Notification, Reason, Report
 from .permissions import IsOwnerOrAdmin
-from .serializers import PUserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer
+from .serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer, \
+    NotificationSerializer, ReasonSerializer
 
 # TODO Question
 from .view.UserViews import put_user
 
-"""
- 1.general inja bashe khobe?
- 2.signup ro hataman check she
-"""
 
-
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
-    username = request.POST.get('username')
-    password = request.POST.get('password')
+    username = request.data.get('username')
+    password = request.data.get('password')
     if username and password:
         user = authenticate(username=username, password=password)
-        if not username:
+        if not user:
             return Response(status=status.HTTP_404_NOT_FOUND)
         if not user.check_password(password):
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -42,91 +43,68 @@ def login_user(request):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST', "GET"])
 @login_required
 def logout_user(request):
     logout(request)
-    return Response(status='logout successfully')
+    return Response(status=status.HTTP_200_OK)
 
 
+@api_view(['POST'])
 def signup_user(request):
     try:
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        email = request.POST.get('email')
-        serializer = PUserSerializer(request.data)
-        if serializer.is_valid():
-            serializer.save()
-            user = models.User.objects.create(username=username, password=password)
-            user.save()
+        email = request.data.get('email')
+        response = UserViews.post_user(request)
+        if response == status.HTTP_201_CREATED:
+            user = User.objects.get(username=request.data.get('username'))
             login(request, user)
-
-            EmailSender.EmailSender.send_email(email, "Click here to confirm " + serializer.confirm_url, 'Confirm')
-
-            return Response(status='Please confirm your Email')
+            EmailSender.EmailSender.send_email(email, "Click here to confirm " + user.confirm_url, 'Confirm')
+            return Response(status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+            return response
     except:
-        return Response(status='Sorry! There is a problem')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['GET'])
 def confirm_email(request, id):
     try:
-        user = User.objects.get(id=id)
+        user = User.objects.get(pk=id)
         user.confirm = True
+        user.save()
         return Response(status=status.HTTP_200_OK)
     except:
-        return Response(status='Please confirm your Email')
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST', 'GET', 'PUT'])
+@login_required
 @permission_classes([IsOwnerOrAdmin])
-def change_password(request): #TODO bug dare fekr konam
-    newPassword = request.POST['newPassword']
-    oldPassword = request.POST['oldPassword']
-    id = request.POST['id']
-    user = User.objects.get(id=id)
-    if user.password == oldPassword:
-        return put_user()
-    return Response('Your password is Wrong!')
+def change_password(request):
+    oldPassword = request.data.get('oldPassword')
+    user = request.user
+    if user.check_password(oldPassword):
+        user.password = request.data.get('newPassword')
+        user.save()
+        return Response(status=status.HTTP_200_OK)
+    return Response(status=status.HTTP_404_NOT_FOUND)
 
 
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def reset_password(request):
-    id = request.POST['id']
+    id = request.data.get('id')
     user = User.objects.get(id=id)
     new_password = MakeRandomPassword.MakeRandomPassword.make_pass()
     EmailSender.EmailSender.send_email(user.email,
                                        "Your new Password" + new_password, "Reset Password")
 
-    # TODO change password in db
-    return Response(status='We send a new password to your email')
+    user.set_password(new_password)
+    user.save()
+    return Response(status=status.HTTP_200_OK)
 
 
-@api_view(['GET'])
-def event_details(request, pk):
-    if request.method == 'GET':
-        event = Event.objects.all().get(pk=pk)
-        serializer = EventSerializer(event)
-        return Response(serializer.data)
-    return Response(status=status.HTTP_404_NOT_FOUND)
-
-
-# @api_view(['GET', 'PUT', 'POST'])
-# def event_list(request):
-#     if request.method == 'GET':
-#         events = Event.objects.all()
-#         serializer = EventSerializer(events, many=True)
-#         return Response(serializer.data)
-#     if request.method == 'POST':
-#         serializer = EventSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     return Response(status=status.HTTP_404_NOT_FOUND)
-
-# todo this v or that ^?
-
-
+<<<<<<< HEAD
 class EventList(generics.ListCreateAPIView):
     queryset = Event.objects.all()
     serializer_class = EventSerializer
@@ -156,9 +134,77 @@ class OrganizationList(generics.ListCreateAPIView):
             return OrganizationCreateSerializer
         return OrganizationSerializer
 
+=======
+@api_view(['POST', 'GET'])
+@login_required
+def send_friendship_request(request):
+    try:
+        id = request.data.get('id')
+        user = User.objects.get(id=id)
+        notification = Notification.objects.create(to_user=User.objects.get(id=request.user.id), text="Friendship",
+                                                   time=now(), from_user=request.user)
+        notification.save()
+        # user.notification_set.add(notification)
+        return Response(status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+>>>>>>> 6802d92d061c9a4430aa339b8f273219830756e1
 
 
+@api_view(['POST', 'GET'])
+def accept_friendship_request(request):
+    try:
+        id = request.data.get('id')
+        user = User.objects.get(id=id)
+        friend = Friend.objects.create()
+        friend.friends.add(user)
+        friend.friends.add(request.user)
+        friend.save()
+        return Response(status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+def get_all_notifications(request):
+    id = request.data.get('id')
+    user = User.objects.get(id=id)
+    notifications = Notification.objects.get(to_user=user)
+    notificationSerializer = NotificationSerializer(notifications, many=True)
+    return Response(notificationSerializer.data)
 
 
+def get_not_read_notification(request):
+    id = request.data.get('id')
+    user = User.objects.get(id=id)
+    notifications = Notification.objects.get(to_user=user, read=False)
+    notificationSerializer = NotificationSerializer(notifications, many=True)
+    return Response(notificationSerializer.data)
+
+
+def get_reasons(request):
+    reasons = Reason.objects.all()
+    serializer = ReasonSerializer(reasons, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def create_report(request):
+    reason_pk = request.data.get('reason_pk')
+    user_id = request.data.get('user_id')
+    reason = Reason.objects.get(pk=reason_pk)
+    user = User.objects.get(id=user_id)
+    report = Report.objects.create(user=user, r_reason=reason)
+    report.save()
+
+
+def send_report(request):
+    report_id = request.data.get('report_id')
+    report = Report.objects.get(id=report_id)
+    reported_user = report.user
+    reasons = report.r_reason
+    reason_string = GeneralFunctions.make_reported_string(reasons)
+
+    notification = Notification.objects.create(from_user=request.user, to_user=reported_user
+                                               , text="Reporting!!!" +
+                                                      " Reason(s):" + reason_string,
+                                               time=now())
+    notification.save()

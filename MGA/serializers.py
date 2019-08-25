@@ -3,13 +3,18 @@ import re
 from rest_framework import serializers
 from rest_framework.relations import HyperlinkedIdentityField
 
-from MGA.models import User, Event, Organization
+from MGA.models import User, Event, Organization, Notification, Reason
 
 
-class PUserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     confirm_url = HyperlinkedIdentityField(
         view_name='MGA:confirm',
         lookup_field='id'
+    )
+    password = serializers.CharField(
+        max_length=128,
+        min_length=4,
+        write_only=True
     )
 
     def validate_username(self, value):
@@ -21,35 +26,40 @@ class PUserSerializer(serializers.ModelSerializer):
         return value
 
     def validate_phoneNumber(self, value):
-        if len(value) != 11:
-            raise serializers.ValidationError("Your phone number should have 11 digits")
-        rule = re.compile(r'/^09[0-9]{9}$/')
-        if not rule.search(value):
+        if len(str(value)) != 10:
+            raise serializers.ValidationError("Your phone number should have 10 digits")
+        rule = re.compile("^9[0-9]{9}$")
+        if not rule.search(str(value)):
             raise serializers.ValidationError("Your phone number is incorrect")
         return value
 
     def validate_bio(self, value):
-        if len(value) > 249:
+        if len(str(value)) > 249:
             raise serializers.ValidationError("Your bio should have at least 250 characters")
 
     def validate_password(self, value):
-        if len(value) < 5:
+        if len(str(value)) < 5:
             raise serializers.ValidationError("Your password is too short! It must be between 5 and 15 characters")
-        if len(value) > 15:
+        if len(str(value)) > 15:
             raise serializers.ValidationError("Your password is too long! It must be between 5 and 15 characters")
-        if not re.search(r'[A-Z]|[a-z]', value) & re.search("[!@#$%^&*]", value):
-            raise serializers.ValidationError("Weak password!")
-        if not re.search("[0-9]", value) & re.search("[!@#$%^&*]", value):
-            raise serializers.ValidationError("Weak password!")
+        if not re.search(r'[A-Z]|[a-z]', value):
+            if not re.search("[!@#$%^&*]", value):
+                raise serializers.ValidationError("Weak password!")
+        if not re.search("[0-9]", value):
+            if not re.search("[!@#$%^&*]", value):
+                raise serializers.ValidationError("Weak password!")
         return value
+
+    def create(self, validated_data):
+        return User.objects.create_user(**validated_data)
 
     class Meta:
         model = User
-        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password','confirm_url']
+        fields = ['username', 'name', 'email', 'city', 'bio', 'phoneNumber', 'password', 'confirm', 'confirm_url']
 
 
 class EventSerializer(serializers.ModelSerializer):
-    members = PUserSerializer(read_only=True, many=True)
+    members = UserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Event
@@ -57,23 +67,26 @@ class EventSerializer(serializers.ModelSerializer):
 
 
 class OrganizationCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
-
-
-
-
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
-
-    admins = PUserSerializer(read_only=True, many=True)
-
+    admins = UserSerializer(read_only=True, many=True)
 
     class Meta:
         model = Organization
         fields = ['name', 'creator', 'admins']
 
 
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'
+
+
+class ReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Reason
+        fields = '__all__'
