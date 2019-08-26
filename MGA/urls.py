@@ -1,7 +1,7 @@
 from django.urls import path
 
 from MGA import views
-from MGA.view import UserViews, EventViews
+from MGA.view import UserViews, EventViews, CafeViews
 
 app_name = 'MGA'
 
@@ -14,6 +14,7 @@ urlpatterns = [
     path('createOrg/', EventViews.add_organization, name='create_organization'),
     path('add_admin/', EventViews.add_admins, name='add_admin'),
     path('addEvent/', EventViews.add_event, name='add_event'),
+    path('cafe/', CafeViews.create_cafe, name='create_cafe'),
 
     path('events/', EventViews.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', EventViews.event_details, name='event_details'),

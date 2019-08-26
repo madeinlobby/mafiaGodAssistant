@@ -6,3 +6,7 @@ def make_reported_string(reasons):
     length = len(reason_string)
     reason_string = reason_string.index(0, length - 1)
     return reason_string
+
+
+def make_mean(mean, count, number):
+    return (mean * count + number) / (count + 1)

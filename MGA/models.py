@@ -9,6 +9,11 @@ class Token(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
+class Rate(models.Model):
+    number_of_votes = models.IntegerField()
+    mean_score = models.IntegerField(default=0)
+
+
 class UserManager(BaseUserManager):
     def create_user(self, name, username, password, bio, phoneNumber, city, email):
         user = User(name=name, username=username, bio=bio, phoneNumber=phoneNumber, city=city,
@@ -33,6 +38,7 @@ class User(AbstractUser):
     phoneNumber = models.BigIntegerField()
     city = models.CharField(max_length=200, blank=True, null=True)
     confirm = models.BooleanField(default=False)
+    rate = models.OneToOneField(Rate, related_name='u_rate', on_delete=models.CASCADE,  blank=True, null=True)
 
     objects = UserManager()
 
@@ -89,3 +95,14 @@ class Notification(models.Model):
     text = models.TextField()
     time = models.DateTimeField()
     read = models.BooleanField(default=False)
+
+
+class Cafe(models.Model):
+    name = models.CharField(max_length=200)
+    phoneNumber = models.BigIntegerField()
+    telephone = models.BigIntegerField()
+    capacity = models.IntegerField()
+    rate = models.OneToOneField(Rate, related_name='c_rate', on_delete=models.CASCADE,  blank=True, null=True)
+    description = models.TextField()
+    forbiddens = models.TextField()
+    # location
