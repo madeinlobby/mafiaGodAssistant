@@ -100,10 +100,11 @@ def add_admins(request):
         return Response(status=status.HTTP_200_OK)
 
 
+@api_view(['POST', 'GET'])
 def add_event(request):
     organization_id = request.data.get('org_id')
     organization = Organization.objects.get(id=organization_id)
-    if request.user in organization.admins or request.user != organization.creator:
+    if request.user == organization.creator or request.user in organization.admins.all():
         qs = Event.objects.filter(title__exact=request.data.get('title'))
         if qs.exists():
             return ValidationError('Title should be unique')

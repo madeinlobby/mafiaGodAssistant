@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -102,6 +103,6 @@ class Tests(APITestCase):
         """
         self.test_create_organization()
         url = reverse('MGA:add_event')
-        data = {'admin id': 1, 'org_id': 1}
+        data = {'org_id': 1, 'title': 'first', 'capacity': 5, 'description': 'nothing!', 'date': now()}
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

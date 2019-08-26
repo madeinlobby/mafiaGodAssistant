@@ -65,17 +65,18 @@ class Report(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
-class Ban(models.Model):
-    b_reason = models.ManyToManyField(Reason, related_name='b_reason')
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
 class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
-    admins = models.ManyToManyField(User, related_name='admins' , default=None)  # todo + by default creator needs to be admin
-    bans = models.ManyToManyField(Ban, related_name='bans', default=None)
+    admins = models.ManyToManyField(User, related_name='admins',
+                                    default=None)  # todo + by default creator needs to be admin
     events = models.ManyToManyField(Event, related_name='events', default=None)
+
+
+class Ban(models.Model):
+    b_reason = models.ManyToManyField(Reason, related_name='b_reason')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, default=None)
 
 
 class Friend(models.Model):
@@ -84,7 +85,7 @@ class Friend(models.Model):
 
 class Notification(models.Model):
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='from_user')
-    to_user = models.ForeignKey(User,on_delete=models.CASCADE , related_name='to_user', default=None)
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='to_user', default=None)
     text = models.TextField()
     time = models.DateTimeField()
     read = models.BooleanField(default=False)

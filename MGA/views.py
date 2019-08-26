@@ -179,15 +179,15 @@ def send_report(request):
 
 
 def create_ban(request):
-    # organizations_id = request.data.get('organization_id')
     banned_user_id = request.data.get('banned_id')
+    organization_id = request.data.get('organization_id')
     reason_id = request.data.get('reason_id')
+    organization = Organization.objects.get(id=organization_id)
     banned_user = User.objects.get(id=banned_user_id)
-    ban = Ban.objects.create(reason_id=reason_id, user=banned_user)
+    ban = Ban.objects.create(reason_id=reason_id, user=banned_user, organization=organization)
     ban.save()
+    return Response(status=status.HTTP_200_OK)
 
-
-# organization = Organization.objects.get(id=organizations_id)
 
 def send_ban(request):
     ban_id = request.data.get('ban_id')
@@ -198,3 +198,18 @@ def send_ban(request):
                                                time=now(), text="Ban!!!" +
                                                                 "Reason(s)" + banned_reason)
     notification.save()
+    return Response(status=status.HTTP_200_OK)
+
+
+def objection(request):
+    try:
+        ban_id = request.data.get('ban_id')
+        ban = Ban.objects.get(id=ban_id)
+        admins = ban.organization.admins.all()
+        for admin in admins:
+            notification = Notification.objects.create(to_user=admin, from_user=request.user, text="Ban Objection",
+                                                       time=now())
+            notification.save()
+        return Response(status=status.HTTP_200_OK)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
