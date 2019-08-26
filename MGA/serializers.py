@@ -60,10 +60,14 @@ class UserSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     members = UserSerializer(read_only=True, many=True)
+    join_url = HyperlinkedIdentityField(
+        view_name='MGA:join_event',
+        lookup_field='event_id'
+    )
 
     class Meta:
         model = Event
-        fields = ['date', 'capacity', 'owner', 'members', 'title', 'description']  # todo add location
+        fields = ['date', 'capacity', 'owner', 'members', 'title', 'description', 'join_url']  # todo add location
 
 
 class OrganizationCreateSerializer(serializers.ModelSerializer):

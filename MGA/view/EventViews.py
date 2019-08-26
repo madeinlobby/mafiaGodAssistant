@@ -112,10 +112,61 @@ def add_event(request):
                                      description=request.data.get('description'),
                                      owner=request.user,
                                      capacity=request.data.get('capacity'),
-                                     date=request.data.get('date')
+                                     date=request.data.get('date'),
+                                     organization=organization
                                      )
         event.save()
-        organization.events.add(event)
         return Response(status=status.HTTP_201_CREATED)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+def end_event(request):
+    return
+
+
+@api_view(['POST', 'GET'])
+def join_event(request, event_id):
+    user = request.user
+    event = Event.objects.get(id=event_id)
+    organization = event.organization
+    if user in organization.ban_set.all():
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    event.members.add(user)
+    event.save()
+    return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_public_events(request):
+    events = Event.objects.filter(private=False)
+    serializer = EventSerializer(events)
+    return Response(serializer.data)
+
+
+"""
+ in search item you should pass number
+ 
+"""
+
+
+# TODO add search by cafe and location
+
+
+@api_view(['GET'])
+def search_event(request):
+    try:
+        search_item = request.data.get('search_item')
+        if search_item == 1:
+            events = Event.objects.filter(private=False)
+        elif search_item == 2:
+            events = Event.objects.filter(private=True)
+        elif search_item == 3:
+            events = Event.objects.filter(date__day=now().day)
+        elif search_item == 4:
+            events = Event.objects.filter(date__month=now().month)
+
+        serializer = EventSerializer(events)
+        return Response(serializer.data, )
+    except:
+        return Response(status=status.HTTP_204_NO_CONTENT)

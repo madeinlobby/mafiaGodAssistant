@@ -38,7 +38,7 @@ class User(AbstractUser):
     phoneNumber = models.BigIntegerField()
     city = models.CharField(max_length=200, blank=True, null=True)
     confirm = models.BooleanField(default=False)
-    rate = models.OneToOneField(Rate, related_name='u_rate', on_delete=models.CASCADE,  blank=True, null=True)
+    rate = models.OneToOneField(Rate, related_name='u_rate', on_delete=models.CASCADE, blank=True, null=True)
 
     objects = UserManager()
 
@@ -49,6 +49,13 @@ class User(AbstractUser):
         return self.username
 
 
+class Organization(models.Model):
+    name = models.CharField(max_length=200, default='untitled')
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
+    admins = models.ManyToManyField(User, related_name='admins',
+                                    default=None)  # todo + by default creator needs to be admin
+
+
 class Event(models.Model):
     # location todo
     date = models.DateTimeField(default=timezone.now)
@@ -57,6 +64,8 @@ class Event(models.Model):
     members = models.ManyToManyField(User, blank=True, related_name='members', default=None)  # todo
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=300, blank=True, null=True)
+    private = models.BooleanField(default=False)
+    organization = models.ForeignKey(Organization, related_name='organization', default=None, on_delete=models.CASCADE)
 
 
 class Reason(models.Model):
@@ -69,14 +78,6 @@ class Reason(models.Model):
 class Report(models.Model):
     r_reason = models.ManyToManyField(Reason, related_name='r_reason')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-
-class Organization(models.Model):
-    name = models.CharField(max_length=200, default='untitled')
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
-    admins = models.ManyToManyField(User, related_name='admins',
-                                    default=None)  # todo + by default creator needs to be admin
-    events = models.ManyToManyField(Event, related_name='events', default=None)
 
 
 class Ban(models.Model):
@@ -102,7 +103,7 @@ class Cafe(models.Model):
     phoneNumber = models.BigIntegerField()
     telephone = models.BigIntegerField()
     capacity = models.IntegerField()
-    rate = models.OneToOneField(Rate, related_name='c_rate', on_delete=models.CASCADE,  blank=True, null=True)
+    rate = models.OneToOneField(Rate, related_name='c_rate', on_delete=models.CASCADE, blank=True, null=True)
     description = models.TextField()
     forbiddens = models.TextField()
     # location

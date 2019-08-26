@@ -15,6 +15,8 @@ urlpatterns = [
     path('add_admin/', EventViews.add_admins, name='add_admin'),
     path('addEvent/', EventViews.add_event, name='add_event'),
     path('cafe/', CafeViews.create_cafe, name='create_cafe'),
+    path('publicEvents', EventViews.get_public_events, name="public_events"),
+    path('joinEvent/<int:event_id>', EventViews.join_event, name='join_event'),
 
     path('events/', EventViews.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', EventViews.event_details, name='event_details'),
