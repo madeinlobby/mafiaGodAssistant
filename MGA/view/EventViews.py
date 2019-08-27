@@ -1,22 +1,11 @@
-from django.contrib.auth import login, authenticate, models, logout
-from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.utils.timezone import now
-
-from rest_framework import status, generics, viewsets
-from rest_framework.decorators import permission_classes, api_view
-from rest_framework.permissions import AllowAny
-from rest_framework.relations import HyperlinkedIdentityField
+from rest_framework import status, generics
+from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 
-from MGA.view import UserViews
-from MGA.models import User, Event, Organization, Friend, Notification
-from MGA.permissions import IsOwnerOrAdmin
-from MGA.serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer, \
-    NotificationSerializer
-
-from .UserViews import put_user
+from MGA.models import User, Event, Organization
+from MGA.serializers import EventSerializer, OrganizationSerializer, OrganizationCreateSerializer
 
 
 @api_view(['GET'])
@@ -73,46 +62,106 @@ class OrganizationList(generics.ListCreateAPIView):
         return OrganizationSerializer
 
 
-
-
-
-
+@api_view(['GET', 'POST'])
 def add_organization(request):
-    serializer_context = {
-        'request': request,
-    }
-
-    serializer = UserSerializer(data = request.data , request=serializer_context)
-    organs = Organization.objects.create()
-
-    if serializer.is_valid():
-
-        organs.save()
-        serializer.save()
+    try:
+        organization = Organization.objects.create(name=request.data.get('name'),
+                                                   creator=request.user,
+                                                   )
+        serializer = OrganizationSerializer(organization)
+        organization.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
-
-
+@api_view(['POST'])
 def add_admins(request):
     admin_id = request.data.get('admin id')
-    users = User.objects.get(id=admin_id)
-    Organization.admins.add(users)
+    organization_id = request.data.get('org_id')
+    organization = Organization.objects.get(id=organization_id)
+    if request.user != organization.creator:
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    else:
+        user = User.objects.get(id=admin_id)
+        organization.admins.add(user)
+        return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST', 'GET'])
+def add_event(request):
+    organization_id = request.data.get('org_id')
+    organization = Organization.objects.get(id=organization_id)
+    if request.user == organization.creator or request.user in organization.admins.all():
+        qs = Event.objects.filter(title__exact=request.data.get('title'))
+        if qs.exists():
+            return ValidationError('Title should be unique')
+        event = Event.objects.create(title=request.data.get('title'),
+                                     description=request.data.get('description'),
+                                     owner=request.user,
+                                     capacity=request.data.get('capacity'),
+                                     date=request.data.get('date'),
+                                     organization=organization
+                                     )
+        event.save()
+        return Response(status=status.HTTP_201_CREATED)
+
+    return Response(status=status.HTTP_403_FORBIDDEN)
+
+
+def end_event(request):
+    return
+
+
+@api_view(['POST', 'GET'])
+def join_event(request, event_id):
+    user = request.user
+    event = Event.objects.get(id=event_id)
+    organization = event.organization
+    if user in organization.ban_set.all():
+        return Response(status=status.HTTP_403_FORBIDDEN)
+    event.members.add(user)
+    event.save()
     return Response(status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+def get_public_events(request):
+    events = Event.objects.filter(private=False)
+    serializer = EventSerializer(events)
+    return Response(serializer.data)
 
+
+"""
+ in search item you should pass number
+ 
+"""
 
 
 def join_event(request):
-
     event_id = request.data.get('event_id')
     users = User.objects.get(id=event_id)
     Event.members.add(users)
     return Response(status=status.HTTP_200_OK)
 
 
+# TODO add search by cafe and location
+
+
+@api_view(['GET'])
+def search_event(request):
+    try:
+        search_item = request.data.get('search_item')
+        if search_item == 1:
+            events = Event.objects.filter(private=False)
+        elif search_item == 2:
+            events = Event.objects.filter(private=True)
+        elif search_item == 3:
+            events = Event.objects.filter(date__day=now().day)
+        elif search_item == 4:
+            events = Event.objects.filter(date__month=now().month)
+
+        serializer = EventSerializer(events)
+        return Response(serializer.data, )
+    except:
+        return Response(status=status.HTTP_204_NO_CONTENT)

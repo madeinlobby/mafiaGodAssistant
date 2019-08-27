@@ -1,9 +1,10 @@
 from django.urls import reverse
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 
-class UserAPITests(APITestCase):
+class Tests(APITestCase):
     def test_login_user(self):
         """
         Ensure login is ok!
@@ -75,18 +76,40 @@ class UserAPITests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-
-class EventAPITests(APITestCase):
-    userTest = UserAPITests()
-
     def test_create_organization(self):
         """
-        Ensure friend request is ok!
+        Ensure create org is ok!
         """
-        url = reverse('MGA:accept_friend_request')
-        data = {'id': 2}
+        self.test_login_user()
+        url = reverse('MGA:create_organization')
+        data = {'name': "event"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_add_admin(self):
+        """
+        Ensure add admin is ok!
+        """
+        self.test_create_user('sara')
+        self.test_create_organization()
+        url = reverse('MGA:add_admin')
+        data = {'admin id': 1, 'org_id': 1}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_create_event(self):
-        self.userTest.test_login_user()
+    def test_add_event(self):
+        """
+        Ensure create event is ok!
+        """
+        self.test_create_organization()
+        url = reverse('MGA:add_event')
+        data = {'org_id': 1, 'title': 'first', 'capacity': 5, 'description': 'nothing!', 'date': now()}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_cafe(self):
+        url = reverse('MGA:create_cafe')
+        data = {'name': 'cafe', 'phoneNumber': '123456', 'telephone': '1234', 'capacity': 34, 'description': 'asdf',
+                'forbiddens': "nothing!"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
