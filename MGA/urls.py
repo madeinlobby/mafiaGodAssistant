@@ -12,6 +12,7 @@ urlpatterns = [
     path('friendAccept/', views.accept_friendship_request, name='accept_friend_request'),
     path('notifications/', views.get_not_read_notification, name='getNotification'),
 
+
     path('events/', EventViews.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', EventViews.event_details, name='event_details'),
     path('organizations/', EventViews.OrganizationList.as_view(), name='organizations_list')

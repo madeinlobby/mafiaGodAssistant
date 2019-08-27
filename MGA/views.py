@@ -199,3 +199,5 @@ def send_ban(request):
                                                time=now(), text="Ban!!!" +
                                                                 "Reason(s)" + banned_reason)
     notification.save()
+
+

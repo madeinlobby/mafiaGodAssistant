@@ -61,6 +61,11 @@ class UserSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     members = UserSerializer(read_only=True, many=True)
 
+    confirm_url = HyperlinkedIdentityField(
+        view_name=''
+
+    )
+
     class Meta:
         model = Event
         fields = ['date', 'capacity', 'owner', 'members', 'title', 'description']  # todo add location
@@ -90,3 +95,5 @@ class ReasonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reason
         fields = '__all__'
+
+

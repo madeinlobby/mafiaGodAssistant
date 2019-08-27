@@ -1,8 +1,8 @@
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import PermissionsMixin, AbstractUser
+from django.conf import settings
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
-from django.conf import settings
 
 
 class Token(models.Model):
@@ -53,6 +53,9 @@ class Event(models.Model):
     members = models.ManyToManyField(User, blank=True, related_name='members')  # todo
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=300, blank=True, null=True)
+    private = models.BooleanField(default=False)
+    xlat = models.FloatField
+    ylat = models.FloatField
 
 
 class Reason(models.Model):
@@ -85,7 +88,7 @@ class Friend(models.Model):
 
 class Notification(models.Model):
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='from_user')
-    to_user = models.ForeignKey(User,on_delete=models.CASCADE , related_name='to_user', default=None)
+    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='to_user', default=None)
     text = models.TextField()
     time = models.DateTimeField()
     read = models.BooleanField(default=False)

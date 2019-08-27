@@ -108,4 +108,11 @@ def add_admins(request):
 
 
 
+def join_event(request):
+
+    event_id = request.data.get('event_id')
+    users = User.objects.get(id=event_id)
+    Event.members.add(users)
+    return Response(status=status.HTTP_200_OK)
+
 
