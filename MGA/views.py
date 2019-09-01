@@ -17,6 +17,7 @@ from .permissions import IsOwnerOrAdmin
 from .serializers import  NotificationSerializer, ReasonSerializer
 
 # TODO Question
+from .view.UserViews import put_user
 
 
 @api_view(['POST'])

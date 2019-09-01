@@ -18,6 +18,7 @@ urlpatterns = [
     path('publicEvents', EventViews.get_public_events, name="public_events"),
     path('joinEvent/<int:event_id>', EventViews.join_event, name='join_event'),
 
+
     path('events/', EventViews.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', EventViews.event_details, name='event_details'),
     path('organizations/', EventViews.OrganizationList.as_view(), name='organizations_list')

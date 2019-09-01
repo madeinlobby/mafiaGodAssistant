@@ -65,6 +65,11 @@ class EventSerializer(serializers.ModelSerializer):
         lookup_field='event_id'
     )
 
+    confirm_url = HyperlinkedIdentityField(
+        view_name=''
+
+    )
+
     class Meta:
         model = Event
         fields = ['date', 'capacity', 'owner', 'members', 'title', 'description', 'join_url']  # todo add location

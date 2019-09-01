@@ -67,6 +67,8 @@ class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=300, blank=True, null=True)
     private = models.BooleanField(default=False)
+    xlat = models.FloatField(null=True)
+    ylat = models.FloatField(null=True)
     organization = models.ForeignKey(Organization, related_name='organization', default=None, on_delete=models.CASCADE)
 
 
