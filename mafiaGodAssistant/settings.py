@@ -31,6 +31,7 @@ AUTH_USER_MODEL = 'MGA.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'chat.apps.ChatConfig',
     'MGA.apps.MgaConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,7 +40,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_jwt'
+    'rest_framework_jwt',
+    # "djcelery",
+    'pushy',
+
 ]
 
 MIDDLEWARE = [
@@ -128,10 +132,10 @@ REST_FRAMEWORK = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'workjyz2019@gmail.com'
+EMAIL_HOST_USER = 'workyzj2019@gmail.com'
 EMAIL_HOST_PASSWORD = 'zahra12345'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
@@ -149,3 +153,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# configuration
+# Android
+PUSHY_GCM_API_KEY = 'YOUR_API_KEY_HERE'
+
+# Send JSON or plaintext payload to GCM server (default is JSON)
+PUSHY_GCM_JSON_PAYLOAD = True
+
+# iOS
+PUSHY_APNS_SANDBOX = True or False
+PUSHY_APNS_CERTIFICATE_FILE = 'PATH_TO_CERTIFICATE_FILE'
+
+PUSHY_QUEUE_DEFAULT_NAME = 'default'
+PUSHY_DEVICE_KEY_LIMIT = 1000

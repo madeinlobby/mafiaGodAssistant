@@ -3,25 +3,28 @@ from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from MGA.models import User
+from mafiaGodAssistant import settings
+
 
 class Tests(APITestCase):
     def test_login_user(self):
         """
         Ensure login is ok!
         """
-        self.test_create_user('ctest')  # make ctest in default db
+        self.test_create_user()  # make ctest in default db
         url = reverse('login')
         data = {'username': "ctest", 'password': "ctest12345"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_create_user(self, name):
+    def test_create_user(self):
         """
         Ensure signup is ok!
         """
         url = reverse('signup')
-        data = {'username': name, 'name': 'name', 'password': 'ctest12345', 'bio': 'bio',
-                'phoneNumber': '9382593895', 'city': 'tehran', 'email': 'z.y.j.1379@gmail.com'}
+        data = {'username': 'ctest', 'name': 'name', 'password': 'ctest12345', 'bio': 'bio',
+                'phoneNumber': '9382593895', 'city': 'tehran', 'email': 'z.y.j.1379@gmail.com', 'device': 'android'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -49,7 +52,7 @@ class Tests(APITestCase):
         """
         Ensure reset password is ok!
         """
-        self.test_create_user('ctest')
+        self.test_create_user()
         url = reverse('reset_password')
         data = {'id': 1}
         response = self.client.post(url, data, format='json')
@@ -90,7 +93,7 @@ class Tests(APITestCase):
         """
         Ensure add admin is ok!
         """
-        self.test_create_user('sara')
+        self.test_create_user()
         self.test_create_organization()
         url = reverse('MGA:add_admin')
         data = {'admin id': 1, 'org_id': 1}
@@ -113,3 +116,50 @@ class Tests(APITestCase):
                 'forbiddens': "nothing!"}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_message(self):
+        url = reverse('signup')
+        data = {'username': 'mut', 'name': 'nme', 'password': 'ctest12345', 'bio': 'bio',
+                'phoneNumber': '9382593895', 'city': 'tehran', 'email': 'z.j.1379@gmail.com', 'device': 'android'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.test_login_user()
+        url = reverse('chat:send_to_one')
+        data = {'text': 'hello', 'receiver_id': 1}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_group(self):
+        self.test_login_user()
+        url = reverse('chat:create_group')
+        data = {'name': 'gruop'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_send_message_to_group(self):
+        self.test_create_group()
+        url = reverse('chat:send_to_group')
+        data = {'group_id': 1, 'text': 'hello'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_delete_group(self):
+        self.test_create_group()
+        url = reverse('chat:delete_group', args=[1])
+        data = {'id': 1}
+        response = self.client.delete(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_edit_message(self):
+        self.test_create_message()
+        url = reverse('chat:edit_message')
+        data = {'message_id': 1,'new_text':'hello'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_message(self):
+        self.test_edit_message()
+        url = reverse('chat:get_message',args=[1])
+        data = {}
+        response = self.client.get(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

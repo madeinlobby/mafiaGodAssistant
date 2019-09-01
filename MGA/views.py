@@ -1,25 +1,22 @@
 from django.contrib.auth import login, authenticate, models, logout
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.utils.timezone import now
+from pushy.models import Device
+from pushy.utils import send_push_notification
 
 from rest_framework import status, generics, viewsets
 from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import AllowAny
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
 
 from MGA import GeneralFunctions
 from MGA.view import UserViews
 from . import EmailSender, MakeRandomPassword
 from .models import User, Event, Organization, Friend, Notification, Reason, Report, Ban
 from .permissions import IsOwnerOrAdmin
-from .serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer, \
-    NotificationSerializer, ReasonSerializer
+from .serializers import  NotificationSerializer, ReasonSerializer
 
 # TODO Question
-from .view.UserViews import put_user
 
 
 @api_view(['POST'])
@@ -57,6 +54,10 @@ def signup_user(request):
         response = UserViews.post_user(request)
         if response == status.HTTP_201_CREATED:
             user = User.objects.get(username=request.data.get('username'))
+            if request.data.get('device') == 'android':
+                user.user_device = Device.objects.create(key=user.id, type=Device.DEVICE_TYPE_ANDROID, user=user)
+            elif request.data.get('device') == 'ios':
+                Device.objects.create(key=user.id, type=Device.DEVICE_TYPE_IOS, user=user)
             login(request, user)
             EmailSender.EmailSender.send_email(email, "Click here to confirm " + user.confirm_url, 'Confirm')
             return Response(status=status.HTTP_200_OK)
@@ -113,6 +114,8 @@ def send_friendship_request(request):
         notification = Notification.objects.create(to_user=User.objects.get(id=request.user.id), text="Friendship",
                                                    time=now(), from_user=request.user)
         notification.save()
+        send_push_notification('YOUR_TITLE', NotificationSerializer(notification).data,
+                               device=notification.to_user.user_device, store=False)
         # user.notification_set.add(notification)
         return Response(status=status.HTTP_200_OK)
     except:
@@ -176,6 +179,8 @@ def send_report(request):
                                                       " Reason(s):" + reason_string,
                                                time=now())
     notification.save()
+    send_push_notification('YOUR_TITLE', NotificationSerializer(notification).data, device=notification.to_user.user_device,
+                           store=False)
 
 
 def create_ban(request):
@@ -198,6 +203,7 @@ def send_ban(request):
                                                time=now(), text="Ban!!!" +
                                                                 "Reason(s)" + banned_reason)
     notification.save()
+    send_push_notification('YOUR_TITLE', NotificationSerializer(notification).data, device=notification.to_user.user_device, store=False)
     return Response(status=status.HTTP_200_OK)
 
 
@@ -210,6 +216,8 @@ def objection(request):
             notification = Notification.objects.create(to_user=admin, from_user=request.user, text="Ban Objection",
                                                        time=now())
             notification.save()
+            send_push_notification('YOUR_TITLE', NotificationSerializer(notification).data,
+                                   device=notification.to_user.user_device, store=False)
         return Response(status=status.HTTP_200_OK)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)

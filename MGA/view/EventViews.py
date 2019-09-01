@@ -1,23 +1,11 @@
-from django.contrib.auth import login, authenticate, models, logout
-from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
 from django.utils.timezone import now
 
-from rest_framework import status, generics, viewsets
-from rest_framework.decorators import permission_classes, api_view
+from rest_framework import status, generics
+from rest_framework.decorators import  api_view
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
-from rest_framework.relations import HyperlinkedIdentityField
 from rest_framework.response import Response
-from rest_framework.reverse import reverse
-
-from MGA.view import UserViews
-from MGA.models import User, Event, Organization, Friend, Notification
-from MGA.permissions import IsOwnerOrAdmin
-from MGA.serializers import UserSerializer, EventSerializer, OrganizationSerializer, OrganizationCreateSerializer, \
-    NotificationSerializer
-
-from .UserViews import put_user
+from MGA.models import User, Event, Organization
+from MGA.serializers import EventSerializer, OrganizationSerializer, OrganizationCreateSerializer
 
 
 @api_view(['GET'])
@@ -167,6 +155,6 @@ def search_event(request):
             events = Event.objects.filter(date__month=now().month)
 
         serializer = EventSerializer(events)
-        return Response(serializer.data, )
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except:
         return Response(status=status.HTTP_204_NO_CONTENT)
