@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from django.db import models
@@ -40,7 +42,8 @@ class User(AbstractUser):
     city = models.CharField(max_length=200, blank=True, null=True)
     confirm = models.BooleanField(default=False, blank=True, null=True)
     rate = models.OneToOneField(Rate, related_name='u_rate', on_delete=models.CASCADE, blank=True, null=True)
-    user_device = models.OneToOneField(Device, on_delete=models.CASCADE, default=None, blank=True, null=True,related_name='user_device')
+    user_device = models.OneToOneField(Device, on_delete=models.CASCADE, default=None, blank=True, null=True,
+                                       related_name='user_device')
 
     objects = UserManager()
 
@@ -111,3 +114,46 @@ class Cafe(models.Model):
     description = models.TextField()
     forbiddens = models.TextField()
     # location
+
+
+class Duration(Enum):
+    OneDay = 'one day'
+    OneNight = 'one night'
+    H24 = '24 hours'
+    H48 = '48 hours'
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
+class BuffType(Enum):
+    Kill = 'kill'
+    Save = 'save'
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
+class Buff(models.Model):
+    duration = models.CharField(max_length=200, choices=Duration.choices())
+    type = models.CharField(max_length=200, choices=BuffType.choices())
+    priority = models.IntegerField()
+    announce = models.BooleanField()
+
+
+class Ability(models.Model):
+    name = models.CharField(max_length=200)
+
+
+class Role(models.Model):
+    name = models.CharField(max_length=200)
+    abilities = models.ManyToManyField(Ability)
+
+
+class Player(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.BooleanField()
+    role = models.ManyToManyField(Role)
+    buffs = models.ManyToManyField(Buff)
