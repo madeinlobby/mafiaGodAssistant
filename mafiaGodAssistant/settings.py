@@ -31,6 +31,7 @@ AUTH_USER_MODEL = 'MGA.User'
 # Application definition
 
 INSTALLED_APPS = [
+    'logic.apps.LogicConfig',
     'chat.apps.ChatConfig',
     'MGA.apps.MgaConfig',
     'django.contrib.admin',

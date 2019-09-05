@@ -39,7 +39,7 @@ class Ability(models.Model):
 
 class Role(models.Model):
     name = models.CharField(max_length=200)
-    abilities = models.ManyToManyField(Ability)
+    abilities = models.ManyToManyField(Ability,blank=True, null=True)
 
 
 class Player(models.Model):
