@@ -2,7 +2,7 @@ from enum import Enum
 
 from django.db import models
 
-from MGA.models import User
+from MGA.models import User, Event
 
 
 class Duration(Enum):
@@ -47,3 +47,9 @@ class Player(models.Model):
     status = models.BooleanField()
     role = models.ManyToManyField(Role)
     buffs = models.ManyToManyField(Buff)
+
+
+class Game(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)  # will be god
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    players = models.ManyToManyField(Player)
