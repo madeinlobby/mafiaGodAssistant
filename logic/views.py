@@ -1,9 +1,9 @@
-from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from MGA.models import Event
 from logic.models import Role, Game
-from logic.serializers import RoleSerializer
+from logic.serializers import RoleSerializer, GameSerializer
 
 
 @api_view(['GET'])
@@ -28,3 +28,14 @@ def set_game_role(request):
     game_id = request.data.get('game_id')
     role_dict = request.data.get('role_dict')
     random_roles(role_dict, game_id)
+
+
+@api_view(['GET', 'POST'])
+def create_game(request):
+    event_id = request.data.get('event id')
+    event = Event.objects.get(id=event_id)
+    game = Game.objects.all().get()
+    Game.objects.create(owner=event.owner, event=event)
+
+    serializer = GameSerializer(game)
+    return Response(serializer.data)
