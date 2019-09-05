@@ -10,6 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('mga/', include('MGA.urls'), name='MGA'),
     path('chat/', include('chat.urls'), name='chat'),
+    path('logic/', include('logic.urls'),name='logic'),
 
     path('resetPassword/', views.reset_password, name='reset_password'),
     path('changPassword/', views.change_password, name='change_password'),

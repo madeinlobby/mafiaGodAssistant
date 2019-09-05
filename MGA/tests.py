@@ -3,7 +3,8 @@ from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from MGA.models import User
+from MGA.models import User, Event
+from logic.models import Role
 from mafiaGodAssistant import settings
 
 
@@ -24,6 +25,16 @@ class Tests(APITestCase):
         """
         url = reverse('signup')
         data = {'username': 'ctest', 'name': 'name', 'password': 'ctest12345', 'bio': 'bio',
+                'phoneNumber': '9382593895', 'city': 'tehran', 'email': 'z.y.j.1379@gmail.com', 'device': 'android'}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def create_user(self, username):
+        """
+        Ensure signup is ok!
+        """
+        url = reverse('signup')
+        data = {'username': username, 'name': 'name', 'password': 'ctest12345', 'bio': 'bio',
                 'phoneNumber': '9382593895', 'city': 'tehran', 'email': 'z.y.j.1379@gmail.com', 'device': 'android'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -110,6 +121,20 @@ class Tests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_fill_member(self):
+        self.test_add_event()
+        self.create_user('zari')
+        self.create_user('kari')
+        self.create_user('mari')
+        self.create_user('hari')
+        url = reverse('MGA:add_member')
+        print(self.client.post(url, {'user_id': 2, 'event_id': 1}, format='json').status_code)
+        print(self.client.post(url, {'user_id': 3, 'event_id': 1}, format='json').status_code)
+        print(self.client.post(url, {'user_id': 4, 'event_id': 1}, format='json').status_code)
+        response = self.client.post(url, {'user_id': 1, 'event_id': 1}, format='json')
+        print(Event.objects.get(id=1).members)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_create_cafe(self):
         url = reverse('MGA:create_cafe')
         data = {'name': 'cafe', 'phoneNumber': '123456', 'telephone': '1234', 'capacity': 34, 'description': 'asdf',
@@ -153,13 +178,40 @@ class Tests(APITestCase):
     def test_edit_message(self):
         self.test_create_message()
         url = reverse('chat:edit_message')
-        data = {'message_id': 1,'new_text':'hello'}
+        data = {'message_id': 1, 'new_text': 'hello'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_message(self):
         self.test_edit_message()
-        url = reverse('chat:get_message',args=[1])
+        url = reverse('chat:get_message', args=[1])
         data = {}
         response = self.client.get(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_create_game(self):
+        self.test_add_event()
+        url = reverse('logic:create_game')
+        data = {'event_id': 1}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_all_roles(self):
+        Role.objects.create(name='شهروند عادی').save()
+        Role.objects.create(name='دکتر').save()
+        Role.objects.create(name='کارآگاه').save()
+        Role.objects.create(name='مافیا').save()
+        url = reverse('logic:get_all_roles')
+        data = {}
+        response = self.client.get(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_set_game_role(self):
+        self.test_create_game()
+        self.test_get_all_roles()
+        dic = {1: 1, 2: 1, 3: 1, 4: 1}
+        url = reverse('logic:set_game_role')
+        data = {'game_id': 1, 'role_dict': dic}
+        response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

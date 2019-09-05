@@ -30,7 +30,7 @@ class Buff(models.Model):
     type = models.CharField(max_length=200, choices=BuffType.choices())
     priority = models.IntegerField()
     announce = models.BooleanField()
-    neutralizer = models.ManyToManyField('self', blank=True, null=True)
+    neutralizer = models.ManyToManyField('self', blank=True)
 
 
 class Ability(models.Model):
@@ -39,17 +39,20 @@ class Ability(models.Model):
 
 class Role(models.Model):
     name = models.CharField(max_length=200)
-    abilities = models.ManyToManyField(Ability,blank=True, null=True)
+    abilities = models.ManyToManyField(Ability, blank=True)
 
-
-class Player(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    status = models.BooleanField()
-    role = models.ManyToManyField(Role)
-    buffs = models.ManyToManyField(Buff)
+    def __str__(self):
+        return self.name
 
 
 class Game(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)  # will be god
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    players = models.ManyToManyField(Player)
+
+
+class Player(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    status = models.BooleanField()  # true -> alive   false -> die
+    role = models.ManyToManyField(Role)
+    buffs = models.ManyToManyField(Buff)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE,default=None)

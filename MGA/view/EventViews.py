@@ -1,7 +1,7 @@
 from django.utils.timezone import now
 
 from rest_framework import status, generics
-from rest_framework.decorators import  api_view
+from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from MGA.models import User, Event, Organization
@@ -158,3 +158,15 @@ def search_event(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except:
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['POST'])
+def add_member(request):
+    user_id = request.data.get('user_id')
+    user = User.objects.get(id=user_id)
+    event_id = request.data.get('event_id')
+    event = Event.objects.get(id=event_id)
+    event.members.add(user)
+    event.save()
+    print(event.members)
+    return Response(status=status.HTTP_200_OK)

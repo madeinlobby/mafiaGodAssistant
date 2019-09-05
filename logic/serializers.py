@@ -1,11 +1,10 @@
 from rest_framework import serializers
-from .models import Game
 
-from logic.models import Role
+from logic.models import Role, Game
 
 
 class GameSerializer(serializers.ModelSerializer):
-    class meta:
+    class Meta:
         model = Game
         fields = '__all__'
 
