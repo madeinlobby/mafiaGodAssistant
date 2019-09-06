@@ -53,6 +53,6 @@ class Game(models.Model):
 class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.BooleanField()  # true -> alive   false -> die
-    role = models.ManyToManyField(Role)
-    buffs = models.ManyToManyField(Buff)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE,default=None)
+    role = models.ForeignKey(Role, blank=True,default=None, on_delete=models.CASCADE)
+    buffs = models.ManyToManyField(Buff, blank=True)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)

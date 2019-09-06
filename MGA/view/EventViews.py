@@ -4,7 +4,7 @@ from rest_framework import status, generics
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-from MGA.models import User, Event, Organization
+from MGA.models import User, Event, Organization, AdminShip, MemberShip
 from MGA.serializers import EventSerializer, OrganizationSerializer, OrganizationCreateSerializer
 
 
@@ -84,7 +84,8 @@ def add_admins(request):
         return Response(status=status.HTTP_403_FORBIDDEN)
     else:
         user = User.objects.get(id=admin_id)
-        organization.admins.add(user)
+        adminship = AdminShip(admin=user, organization=organization)
+        adminship.save()
         return Response(status=status.HTTP_200_OK)
 
 
@@ -120,8 +121,8 @@ def join_event(request, event_id):
     organization = event.organization
     if user in organization.ban_set.all():
         return Response(status=status.HTTP_403_FORBIDDEN)
-    event.members.add(user)
-    event.save()
+    membership = MemberShip(event=event, member=user)
+    membership.save()
     return Response(status=status.HTTP_200_OK)
 
 
@@ -160,13 +161,13 @@ def search_event(request):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['POST'])
+@api_view(['POST'])  # for test do not use
 def add_member(request):
     user_id = request.data.get('user_id')
     user = User.objects.get(id=user_id)
     event_id = request.data.get('event_id')
     event = Event.objects.get(id=event_id)
-    event.members.add(user)
-    event.save()
-    print(event.members)
+    membership = MemberShip.objects.create(event=event, member=user)
+    membership.save()
+    user.save()
     return Response(status=status.HTTP_200_OK)

@@ -207,11 +207,24 @@ class Tests(APITestCase):
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_set_game_role(self):
+    def test_set_game_role_false(self):
         self.test_create_game()
         self.test_get_all_roles()
         dic = {1: 1, 2: 1, 3: 1, 4: 1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_set_game_role_true(self):
+        self.test_fill_member()
+        url = reverse('logic:create_game')
+        data = {'event_id': 1}
+        self.client.post(url, data, format='json')
+        self.test_get_all_roles()
+        dic = {1: 1, 2: 1, 3: 1, 4: 1}
+        url = reverse('logic:set_game_role')
+        data = {'game_id': 1, 'role_dict': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)

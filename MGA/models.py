@@ -58,7 +58,12 @@ class Organization(models.Model):
     name = models.CharField(max_length=200, default='untitled')
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='creator')
     admins = models.ManyToManyField(User, related_name='admins',
-                                    default=None)  # todo + by default creator needs to be admin
+                                    default=None, through='AdminShip')  # todo + by default creator needs to be admin
+
+
+class AdminShip(models.Model):
+    admin = models.ForeignKey(User, on_delete=models.CASCADE)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)
 
 
 class Event(models.Model):
@@ -66,13 +71,19 @@ class Event(models.Model):
     date = models.DateTimeField(default=timezone.now)
     capacity = models.IntegerField()
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owner')
-    members = models.ManyToManyField(User, blank=True, related_name='members', default=None)  # todo
+    members = models.ManyToManyField(User, related_name='members',
+                                     through='MemberShip')  # todo
     title = models.CharField(max_length=200)
     description = models.CharField(max_length=300, blank=True, null=True)
     private = models.BooleanField(default=False)
     xlat = models.FloatField(null=True)
     ylat = models.FloatField(null=True)
     organization = models.ForeignKey(Organization, related_name='organization', default=None, on_delete=models.CASCADE)
+
+
+class MemberShip(models.Model):
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
 
 class Reason(models.Model):
@@ -83,8 +94,13 @@ class Reason(models.Model):
 
 
 class Report(models.Model):
-    r_reason = models.ManyToManyField(Reason, related_name='r_reason')
+    r_reason = models.ManyToManyField(Reason, related_name='r_reason', through='ReportShip')
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class ReportShip(models.Model):
+    reason = models.ForeignKey(Reason, on_delete=models.CASCADE)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
 
 
 class Ban(models.Model):
@@ -93,8 +109,14 @@ class Ban(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, default=None)
 
 
+class BanShip(models.Model):
+    reason = models.ForeignKey(Reason, on_delete=models.CASCADE)
+    ban = models.ForeignKey(Ban, on_delete=models.CASCADE)
+
+
 class Friend(models.Model):
-    friends = models.ManyToManyField(User, related_name='friends')
+    user = models.ForeignKey(User, related_name='friend_user', on_delete=models.CASCADE)
+    friend = models.ForeignKey(User, related_name='friends', on_delete=models.CASCADE)
 
 
 class Notification(models.Model):
@@ -114,4 +136,3 @@ class Cafe(models.Model):
     description = models.TextField()
     forbiddens = models.TextField()
     # location
-

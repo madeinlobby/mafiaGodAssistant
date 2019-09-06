@@ -6,14 +6,14 @@ from rest_framework.response import Response
 
 from MGA.models import Event
 from logic.models import Role, Game, Player
-from logic.serializers import RoleSerializer, GameSerializer
+from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
 @api_view(['GET'])
 def get_all_roles(request):
     roles = Role.objects.all()
     serializer = RoleSerializer(roles, many=True)
-    return Response(serializer.data,status=status.HTTP_200_OK)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 def random_roles(role_dict, game_id):
@@ -33,7 +33,9 @@ def random_roles(role_dict, game_id):
                     role = Role.objects.get(id=role)
                     player = Player.objects.create(status=True, user=member, role=role, game=game)
                     player.save()
-        return Response(status=status.HTTP_200_OK)
+        game.save()
+        serializer = PlayerSerializer(game.player_set, many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -53,6 +55,6 @@ def create_game(request):
         game.save()
 
         serializer = GameSerializer(game)
-        return Response(serializer.data,status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)

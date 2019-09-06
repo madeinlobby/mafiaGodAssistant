@@ -112,7 +112,7 @@ def send_friendship_request(request):
     try:
         id = request.data.get('id')
         user = User.objects.get(id=id)
-        notification = Notification.objects.create(to_user=User.objects.get(id=request.user.id), text="Friendship",
+        notification = Notification.objects.create(to_user=user, text="Friendship",
                                                    time=now(), from_user=request.user)
         notification.save()
         send_push_notification('YOUR_TITLE', NotificationSerializer(notification).data,
@@ -129,8 +129,8 @@ def accept_friendship_request(request):
         id = request.data.get('id')
         user = User.objects.get(id=id)
         friend = Friend.objects.create()
-        friend.friends.add(user)
-        friend.friends.add(request.user)
+        friend.user = request.user
+        friend.friend = user
         friend.save()
         return Response(status=status.HTTP_200_OK)
     except:
