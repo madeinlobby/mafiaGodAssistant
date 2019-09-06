@@ -26,7 +26,7 @@ class BuffType(Enum):
 
 
 class Buff(models.Model):
-    duration = models.CharField(max_length=200, choices=Duration.choices())
+    duration = models.IntegerField()
     type = models.CharField(max_length=200, choices=BuffType.choices())
     priority = models.IntegerField()
     announce = models.BooleanField()
