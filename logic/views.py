@@ -166,11 +166,3 @@ def make_buff(Role,opponent_id):
 
 
 
-    buffs = attacker.role.abilities
-
-
-
-
-
- role_id = Role.objects.get(id=player_id)
-Role.abilities.get()
