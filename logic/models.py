@@ -56,3 +56,4 @@ class Player(models.Model):
     role = models.ForeignKey(Role, blank=True,default=None, on_delete=models.CASCADE)
     buffs = models.ManyToManyField(Buff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
+
