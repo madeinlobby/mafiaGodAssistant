@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player, Duration, RoleEnum
+from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -116,7 +116,7 @@ def day_happening(game):
     return Response(dictionary)
 
 
-def order_awake(game):    # todo
+def order_awake(game):  # todo
     dictionary = dict()
     players = game.player_set
     dictionary.update({RoleEnum.mafia: True})
@@ -147,4 +147,30 @@ def alive_player(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+def make_buff(Role,opponent_id):
+    #attacker = Player.objects.get(id=attacker_id)
+    opponent = Player.objects.get(id=opponent_id)
+    buffs = Role.abilities.buffs
 
+    for buff in buffs:
+        player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
+                                           priority=buff.priority, announce=buff.announce,
+                                           player_duration=buff.duration.value)
+
+        player_buff.save()
+
+        opponent.buffs.add(player_buff)
+        opponent.save()
+
+
+
+
+
+    buffs = attacker.role.abilities
+
+
+
+
+
+ role_id = Role.objects.get(id=player_id)
+Role.abilities.get()
