@@ -10,6 +10,8 @@ class Duration(Enum):
     OneNight = 'one night'
     H24 = '24 hours'
     H48 = '48 hours'
+    H12 = '12 hours'
+    always = 'always'
 
     @classmethod
     def choices(cls):
@@ -33,12 +35,27 @@ class Buff(models.Model):
     neutralizer = models.ManyToManyField('self', blank=True)
 
 
+class PlayerBuff(Buff):
+    player_duration = models.IntegerField()
+
+
 class Ability(models.Model):
     name = models.CharField(max_length=200)
 
 
+class RoleEnum(Enum):
+    citizen = 'شهروند عادی'
+    doctor = 'دکتر'
+    detective = 'کارآگاه'
+    mafia = 'مافیا'
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
 class Role(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, choices=RoleEnum.choices())
     abilities = models.ManyToManyField(Ability, blank=True)
 
     def __str__(self):
@@ -53,7 +70,7 @@ class Game(models.Model):
 class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.BooleanField()  # true -> alive   false -> die
-    role = models.ForeignKey(Role, blank=True,default=None, on_delete=models.CASCADE)
-    buffs = models.ManyToManyField(Buff, blank=True)
+    role = models.ForeignKey(Role, blank=True, default=None, on_delete=models.CASCADE)
+    buffs = models.ManyToManyField(PlayerBuff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
 
