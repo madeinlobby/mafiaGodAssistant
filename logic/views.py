@@ -146,3 +146,20 @@ def order_awake(game):
     return Response(dictionary)
 
 
+
+def alive_player(request):
+    game_id = request.data.get('game_id')
+    game = Game.objects.get(id=game_id)
+    players = game.player_set
+
+    aliveplayers = []
+    for p in players:
+        if p.stauts == True:
+            aliveplayers.append(p.user.username)
+
+
+    serializer = PlayerSerializer(aliveplayers, many=True)
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
