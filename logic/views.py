@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player, Duration
+from logic.models import Role, Game, Player, Duration, RoleEnum
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -117,4 +117,32 @@ def day_happening(game):
 
 
 def order_awake(game):
-    return Response()
+
+    dictionary = dict()
+    players = game.player_set
+    for p in players:
+        if Role.name == RoleEnum.mafia:
+            if p.stauts == True:
+               #return Response(status='mafia is alive')
+               dictionary.update({RoleEnum.mafia: p.stauts})
+            else:
+                #return Response(status='mafia is dead')
+               dictionary.update({RoleEnum.mafia: p.stauts})
+
+
+        if Role.name == RoleEnum.doctor:
+            if p.stauts == True:
+                dictionary.update({RoleEnum.doctor: p.stauts})
+            else:
+                dictionary.update({RoleEnum.doctor: p.stauts})
+
+        if Role.name == RoleEnum.detective:
+            if p.stauts == True:
+                dictionary.update({RoleEnum.detective: p.stauts})
+            else:
+                dictionary.update({RoleEnum.detective: p.stauts})
+
+
+    return Response(dictionary)
+
+
