@@ -240,7 +240,7 @@ class Tests(APITestCase):
         save.neutralizer.add(kill)
         save.save()
         kill.save()
-        for n in kill.neutralizer: self.assertEqual(n.type, BuffType.Save)
+        self.assertEqual(kill.neutralizer.count(), 1)
 
     def test_start_game(self):
         self.test_set_game_role_true()
