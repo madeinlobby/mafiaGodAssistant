@@ -116,35 +116,20 @@ def day_happening(game):
     return Response(dictionary)
 
 
-def order_awake(game):
-
+def order_awake(game):    # todo
     dictionary = dict()
     players = game.player_set
+    dictionary.update({RoleEnum.mafia: True})
     for p in players:
-        if Role.name == RoleEnum.mafia:
-            if p.stauts == True:
-               #return Response(status='mafia is alive')
-               dictionary.update({RoleEnum.mafia: p.stauts})
-            else:
-                #return Response(status='mafia is dead')
-               dictionary.update({RoleEnum.mafia: p.stauts})
-
-
         if Role.name == RoleEnum.doctor:
-            if p.stauts == True:
-                dictionary.update({RoleEnum.doctor: p.stauts})
-            else:
-                dictionary.update({RoleEnum.doctor: p.stauts})
+            dictionary.update({RoleEnum.doctor: p.stauts})
+        else:
+            continue
 
         if Role.name == RoleEnum.detective:
-            if p.stauts == True:
-                dictionary.update({RoleEnum.detective: p.stauts})
-            else:
-                dictionary.update({RoleEnum.detective: p.stauts})
-
+            dictionary.update({RoleEnum.detective: p.stauts})
 
     return Response(dictionary)
-
 
 
 def alive_player(request):
@@ -157,9 +142,9 @@ def alive_player(request):
         if p.stauts == True:
             aliveplayers.append(p.user.username)
 
-
     serializer = PlayerSerializer(aliveplayers, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
