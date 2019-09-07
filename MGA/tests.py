@@ -236,8 +236,12 @@ class Tests(APITestCase):
         save.neutralizer.add(kill)
 
         Ability.objects.create(name=AbilityEnum.can_ask).save()
-        Ability.objects.create(name=AbilityEnum.can_kil).save()
-        Ability.objects.create(name=AbilityEnum.can_save).save()
+        killAbility=Ability.objects.create(name=AbilityEnum.can_kil)
+        killAbility.buffs.add(kill)
+        kill.save()
+        saveAbility=Ability.objects.create(name=AbilityEnum.can_save)
+        saveAbility.buffs.add(save)
+        saveAbility.save()
         Role.objects.create(name=RoleEnum.citizen).save()
         doctor = Role.objects.create(name=RoleEnum.doctor)
         detective = Role.objects.create(name=RoleEnum.detective)
@@ -248,8 +252,6 @@ class Tests(APITestCase):
         doctor.save()
         detective.save()
         mafia.save()
-
-
         self.assertEqual(kill.neutralizer.count(), 1)
 
     def test_start_game(self):

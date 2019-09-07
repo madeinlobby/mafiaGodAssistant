@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from MGA.models import Event
+from MGA.models import Event, User
 from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
@@ -147,8 +147,7 @@ def alive_player(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-def make_buff(role, opponent_id):
-    opponent = Player.objects.get(id=opponent_id)
+def make_buff(role, opponent):
     buffs = role.abilities.buffs
 
     for buff in buffs:
@@ -160,7 +159,13 @@ def make_buff(role, opponent_id):
         opponent.save()
 
 
-def get_aims(request):
+def set_night_aims(request):
+    response_dic = dict()
     aims_dic = request.data.get('aim_dic')
     for aim in aims_dic:
-        make_buff(Buff.objects.get(name=aim), aims_dic[aim])
+        role = Role.objects.get(name=aim)
+        player = Player.objects.get(user=User.objects.get(username=aims_dic[aim]))
+        if role.name == RoleEnum.detective:
+            response_dic.update({role.name: player.role.team})
+        make_buff(role, player)
+    return Response(response_dic)

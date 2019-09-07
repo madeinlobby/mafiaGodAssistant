@@ -63,9 +63,20 @@ class RoleEnum(Enum):
         return tuple((i.name, i.value) for i in cls)
 
 
+class TeamEnum(Enum):
+    mafia = 'مافیا'
+    citizen = 'شهروندان'
+    independence = 'مستقل'
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
 class Role(models.Model):
     name = models.CharField(max_length=200, choices=RoleEnum.choices())
     abilities = models.ManyToManyField(Ability, blank=True)
+    team = models.CharField(max_length=50, choices=TeamEnum.choices())
 
     def __str__(self):
         return self.name
