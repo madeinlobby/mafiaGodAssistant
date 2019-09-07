@@ -6,11 +6,9 @@ from MGA.models import User, Event
 
 
 class Duration(Enum):
-    OneDay = 'one day'
-    OneNight = 'one night'
-    H24 = '24 hours'
-    H48 = '48 hours'
-    H12 = '12 hours'
+    H24 = 24
+    H48 = 48
+    H12 = 12
     always = 'always'
 
     @classmethod
@@ -51,6 +49,7 @@ class AbilityEnum(Enum):
 
 class Ability(models.Model):
     name = models.CharField(max_length=200)
+    buffs = models.ManyToManyField(Buff, related_name='ability_buff')
 
 
 class RoleEnum(Enum):
@@ -76,10 +75,10 @@ class Game(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)  # will be god
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
+
 class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.BooleanField()  # true -> alive   false -> die
     role = models.ForeignKey(Role, blank=True, default=None, on_delete=models.CASCADE)
     buffs = models.ManyToManyField(PlayerBuff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
-

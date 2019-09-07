@@ -230,6 +230,11 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_init(self):
+        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True)
+        save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
+        kill.neutralizer.add(save)
+        save.neutralizer.add(kill)
+
         Ability.objects.create(name=AbilityEnum.can_ask).save()
         Ability.objects.create(name=AbilityEnum.can_kil).save()
         Ability.objects.create(name=AbilityEnum.can_save).save()
@@ -243,10 +248,7 @@ class Tests(APITestCase):
         doctor.save()
         detective.save()
         mafia.save()
-        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True)
-        save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
-        kill.neutralizer.add(save)
-        save.neutralizer.add(kill)
+
 
         self.assertEqual(kill.neutralizer.count(), 1)
 

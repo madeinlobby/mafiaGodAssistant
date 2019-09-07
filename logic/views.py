@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player, Duration, RoleEnum
+from logic.models import Role, Game, Player, Duration, RoleEnum, Buff
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -116,35 +116,20 @@ def day_happening(game):
     return Response(dictionary)
 
 
-def order_awake(game):
-
+def order_awake(game):  # todo is wrong
     dictionary = dict()
     players = game.player_set
-    for p in players:
+    for player in players:
         if Role.name == RoleEnum.mafia:
-            if p.stauts == True:
-               #return Response(status='mafia is alive')
-               dictionary.update({RoleEnum.mafia: p.stauts})
-            else:
-                #return Response(status='mafia is dead')
-               dictionary.update({RoleEnum.mafia: p.stauts})
-
+            dictionary.update({RoleEnum.mafia: player.stauts})
 
         if Role.name == RoleEnum.doctor:
-            if p.stauts == True:
-                dictionary.update({RoleEnum.doctor: p.stauts})
-            else:
-                dictionary.update({RoleEnum.doctor: p.stauts})
+            dictionary.update({RoleEnum.doctor: player.stauts})
 
         if Role.name == RoleEnum.detective:
-            if p.stauts == True:
-                dictionary.update({RoleEnum.detective: p.stauts})
-            else:
-                dictionary.update({RoleEnum.detective: p.stauts})
-
+            dictionary.update({RoleEnum.detective: player.stauts})
 
     return Response(dictionary)
-
 
 
 def alive_player(request):
@@ -152,14 +137,17 @@ def alive_player(request):
     game = Game.objects.get(id=game_id)
     players = game.player_set
 
-    aliveplayers = []
+    alivePlayers = []
     for p in players:
-        if p.stauts == True:
-            aliveplayers.append(p.user.username)
+        if p.stauts:
+            alivePlayers.append(p.user.username)
 
-
-    serializer = PlayerSerializer(aliveplayers, many=True)
+    serializer = PlayerSerializer(alivePlayers, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+def get_aims(request):
+    aims_dic = request.data.get('aim_dic')
+    for aim in aims_dic:
+        make_buff(Buff.objects.get(name=aim), aims_dic[aim])
