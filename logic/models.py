@@ -76,10 +76,10 @@ class Game(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)  # will be god
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
 
-
 class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     status = models.BooleanField()  # true -> alive   false -> die
     role = models.ForeignKey(Role, blank=True, default=None, on_delete=models.CASCADE)
     buffs = models.ManyToManyField(PlayerBuff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
+

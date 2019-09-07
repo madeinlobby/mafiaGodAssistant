@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player, Duration
+from logic.models import Role, Game, Player, Duration, RoleEnum
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -53,6 +53,7 @@ def create_game(request):
         event = Event.objects.get(id=event_id)
         game = Game.objects.create(owner=event.owner, event=event)
         game.save()
+
         serializer = GameSerializer(game)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     except:
@@ -110,8 +111,38 @@ def day_happening(game):
         for buff in player.buffs:
             if buff.announce:
                 dictionary.update({player.user.name: buff.type})
+            if buff.announce:
+                dictionary.update({player.user.name: buff.type})
     return Response(dictionary)
 
 
-def order_awake(game):  # TODO for elnaz
-    return Response()
+def order_awake(game):
+
+    dictionary = dict()
+    players = game.player_set
+    for p in players:
+        if Role.name == RoleEnum.mafia:
+            if p.stauts == True:
+               #return Response(status='mafia is alive')
+               dictionary.update({RoleEnum.mafia: p.stauts})
+            else:
+                #return Response(status='mafia is dead')
+               dictionary.update({RoleEnum.mafia: p.stauts})
+
+
+        if Role.name == RoleEnum.doctor:
+            if p.stauts == True:
+                dictionary.update({RoleEnum.doctor: p.stauts})
+            else:
+                dictionary.update({RoleEnum.doctor: p.stauts})
+
+        if Role.name == RoleEnum.detective:
+            if p.stauts == True:
+                dictionary.update({RoleEnum.detective: p.stauts})
+            else:
+                dictionary.update({RoleEnum.detective: p.stauts})
+
+
+    return Response(dictionary)
+
+
