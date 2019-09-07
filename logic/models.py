@@ -39,6 +39,16 @@ class PlayerBuff(Buff):
     player_duration = models.IntegerField()
 
 
+class AbilityEnum(Enum):
+    can_save = 'نجات'
+    can_ask = 'پرسش نقش'
+    can_kil = 'کشتن فرد'
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+
 class Ability(models.Model):
     name = models.CharField(max_length=200)
 

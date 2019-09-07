@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from MGA.models import User, Event
-from logic.models import Role, Buff, Duration, BuffType
+from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum
 from mafiaGodAssistant import settings
 
 
@@ -230,17 +230,26 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_init(self):
-        Role.objects.create(name='شهروند عادی').save()
-        Role.objects.create(name='دکتر').save()
-        Role.objects.create(name='کارآگاه').save()
-        Role.objects.create(name='مافیا').save()
+        Ability.objects.create(name=AbilityEnum.can_ask).save()
+        Ability.objects.create(name=AbilityEnum.can_kil).save()
+        Ability.objects.create(name=AbilityEnum.can_save).save()
+        Role.objects.create(name=RoleEnum.citizen).save()
+        doctor = Role.objects.create(name=RoleEnum.doctor)
+        detective = Role.objects.create(name=RoleEnum.detective)
+        mafia = Role.objects.create(name=RoleEnum.mafia)
+        doctor.abilities.add(Ability.objects.get(id=3))
+        detective.abilities.add(Ability.objects.get(id=1))
+        mafia.abilities.add(Ability.objects.get(id=2))
+        doctor.save()
+        detective.save()
+        mafia.save()
         kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True)
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
         kill.neutralizer.add(save)
         save.neutralizer.add(kill)
-        save.save()
-        kill.save()
+
         self.assertEqual(kill.neutralizer.count(), 1)
 
     def test_start_game(self):
+        self.test_init()
         self.test_set_game_role_true()
