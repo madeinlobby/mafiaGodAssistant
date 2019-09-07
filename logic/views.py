@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player
+from logic.models import Role, Game, Player, Duration
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -53,7 +53,6 @@ def create_game(request):
         event = Event.objects.get(id=event_id)
         game = Game.objects.create(owner=event.owner, event=event)
         game.save()
-
         serializer = GameSerializer(game)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     except:
@@ -62,17 +61,20 @@ def create_game(request):
 
 def decrease_duration(player):
     for buff in player.buffs:
-        buff.duration -= 12
-        if buff.duration < 0:
-            pl
-    # todo delete
+        if buff.duration == Duration.always:
+            continue
+        buff.player_duration -= 12
+        if buff.player_duration < 0:
+            buff.delete()
 
 
-def check_neutralizer(player):
+def check_neutralizer(player):  # todo bug delete nadare be nazaret?
     for buff in player.buffs:
         for n_buff in buff.neutralizer:
-            if n_buff in player.buffs:
-        # todo delete both
+            for buffNeu in player.buff:
+                if buffNeu.type == n_buff.type:
+                    buffNeu.delete()
+                    buff.delete()
 
 
 def day_to_night(request):
@@ -81,8 +83,9 @@ def day_to_night(request):
     players = game.player_set
 
     for player in players:
-        decrease_duration(player)
-        check_neutralizer(player)
+        if player.status:
+            decrease_duration(player)
+            check_neutralizer(player)
 
     return order_awake(game)
 
@@ -93,8 +96,9 @@ def night_to_day(request):
     players = game.player_set
 
     for player in players:
-        decrease_duration(player)
-        check_neutralizer(player)
+        if player.status:
+            decrease_duration(player)
+            check_neutralizer(player)
 
     return day_happening(game)
 
@@ -104,8 +108,8 @@ def day_happening(game):
     players = game.player_set
     for player in players:
         for buff in player.buffs:
-            if buff.announce :
-                dictionary.update({player.user.name:buff.type})
+            if buff.announce:
+                dictionary.update({player.user.name: buff.type})
     return Response(dictionary)
 
 

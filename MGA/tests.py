@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from MGA.models import User, Event
-from logic.models import Role
+from logic.models import Role, Buff, Duration, BuffType
 from mafiaGodAssistant import settings
 
 
@@ -228,3 +228,19 @@ class Tests(APITestCase):
         response = self.client.post(url, data, format='json')
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_init(self):
+        Role.objects.create(name='شهروند عادی').save()
+        Role.objects.create(name='دکتر').save()
+        Role.objects.create(name='کارآگاه').save()
+        Role.objects.create(name='مافیا').save()
+        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True)
+        save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
+        kill.neutralizer.add(save)
+        save.neutralizer.add(kill)
+        save.save()
+        kill.save()
+        for n in kill.neutralizer: self.assertEqual(n.type, BuffType.Save)
+
+    def test_start_game(self):
+        self.test_set_game_role_true()
