@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player
+from logic.models import Role, Game, Player, Duration
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -35,7 +35,7 @@ def random_roles(role_dict, game_id):
                     player.save()
         game.save()
         serializer = PlayerSerializer(game.player_set, many=True)
-        return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -58,3 +58,63 @@ def create_game(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     except:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+def decrease_duration(player):
+    for buff in player.buffs:
+        if buff.duration == Duration.always:
+            continue
+        buff.player_duration -= 12
+        if buff.player_duration < 0:
+            buff.delete()
+
+
+def check_neutralizer(player):  # todo bug delete nadare be nazaret?
+    for buff in player.buffs:
+        for n_buff in buff.neutralizer:
+            for buffNeu in player.buff:
+                if buffNeu.type == n_buff.type:
+                    buffNeu.delete()
+                    buff.delete()
+
+
+def day_to_night(request):
+    game_id = request.data.get('game_id')
+    game = Game.objects.get(id=game_id)
+    players = game.player_set
+
+    for player in players:
+        if player.status:
+            decrease_duration(player)
+            check_neutralizer(player)
+
+    return order_awake(game)
+
+
+def night_to_day(request):
+    game_id = request.data.get('game_id')
+    game = Game.objects.get(id=game_id)
+    players = game.player_set
+
+    for player in players:
+        if player.status:
+            decrease_duration(player)
+            check_neutralizer(player)
+
+    return day_happening(game)
+
+
+def day_happening(game):
+    dictionary = dict()
+    players = game.player_set
+    for player in players:
+        for buff in player.buffs:
+            if buff.announce:
+                dictionary.update({player.user.name: buff.type})
+            if buff.announce:
+                dictionary.update({player.user.name: buff.type})
+    return Response(dictionary)
+
+
+def order_awake(game):
+    return Response()
