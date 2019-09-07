@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event
-from logic.models import Role, Game, Player, Duration, RoleEnum, Buff
+from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -116,18 +116,18 @@ def day_happening(game):
     return Response(dictionary)
 
 
-def order_awake(game):  # todo is wrong
+def order_awake(game):  # todo
     dictionary = dict()
     players = game.player_set
-    for player in players:
-        if Role.name == RoleEnum.mafia:
-            dictionary.update({RoleEnum.mafia: player.stauts})
-
+    dictionary.update({RoleEnum.mafia: True})
+    for p in players:
         if Role.name == RoleEnum.doctor:
-            dictionary.update({RoleEnum.doctor: player.stauts})
+            dictionary.update({RoleEnum.doctor: p.stauts})
+        else:
+            continue
 
         if Role.name == RoleEnum.detective:
-            dictionary.update({RoleEnum.detective: player.stauts})
+            dictionary.update({RoleEnum.detective: p.stauts})
 
     return Response(dictionary)
 
@@ -145,6 +145,19 @@ def alive_player(request):
     serializer = PlayerSerializer(alivePlayers, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def make_buff(role, opponent_id):
+    opponent = Player.objects.get(id=opponent_id)
+    buffs = role.abilities.buffs
+
+    for buff in buffs:
+        player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
+                                                priority=buff.priority, announce=buff.announce,
+                                                player_duration=buff.duration.value)
+        player_buff.save()
+        opponent.buffs.add(player_buff)
+        opponent.save()
 
 
 def get_aims(request):
