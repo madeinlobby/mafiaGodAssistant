@@ -75,14 +75,18 @@ def check_neutralizer(player):  # todo bug delete nadare be nazaret?
         for n_buff in buff.neutralizer.all():
             for buffNeu in player.buffs.all():
                 if buffNeu.type == n_buff.type:
-                    buffNeu.delete()
-                    buff.delete()
+                    amount = buffNeu.player_duration
+                    buffNeu.player_duration -= buff.player_duration
+                    buff.player_duration -= amount
+                    if buffNeu.player_duration < 0:
+                        buffNeu.delete()
+                    if buff.player_duration < 0:
+                        buff.delete()
 
 
 def set_buff_effect(player):
     for buff in player.buffs.all():
         if buff.function_name:
-
             method_to_call = getattr(buffLibrary, buff.function_name)
             method_to_call(player)
 
@@ -211,3 +215,8 @@ def end_game(game):
         return str(TeamEnum.citizen)
     else:
         return False
+
+
+@api_view(['POST', 'GET'])
+def voting(request):  # TODO for elnaz
+    return Response()

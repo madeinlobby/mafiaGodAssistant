@@ -121,19 +121,10 @@ class Tests(APITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_fill_member(self):
-        self.test_add_event()
-        self.create_user('zari')
-        self.create_user('kari')
-        self.create_user('mari')
-        self.create_user('hari')
+    def fill_member(self, name, id):
+        self.create_user(name)
         url = reverse('MGA:add_member')
-        print(self.client.post(url, {'user_id': 2, 'event_id': 1}, format='json').status_code)
-        print(self.client.post(url, {'user_id': 3, 'event_id': 1}, format='json').status_code)
-        print(self.client.post(url, {'user_id': 4, 'event_id': 1}, format='json').status_code)
-        response = self.client.post(url, {'user_id': 1, 'event_id': 1}, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        print(self.client.post(url, {'user_id': id, 'event_id': 1}, format='json').status_code)
 
     def test_create_cafe(self):
         url = reverse('MGA:create_cafe')
@@ -233,8 +224,10 @@ class Tests(APITestCase):
         kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True,
                                    function_name='kill')
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
-        kill.neutralizer.add(save)
+        jail_save = Buff.objects.create(duration=Duration.H24, type=BuffType.Save, priority=3, announce=True)
+        kill.neutralizer.add(save, jail_save)
         save.neutralizer.add(kill)
+        jail_save.neutralizer.add(kill)
 
         Ability.objects.create(name=AbilityEnum.can_ask).save()
         killAbility = Ability.objects.create(name=AbilityEnum.can_kil)
@@ -243,6 +236,7 @@ class Tests(APITestCase):
         saveAbility = Ability.objects.create(name=AbilityEnum.can_save)
         saveAbility.buffs.add(save)
         saveAbility.save()
+
         Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen).save()
         doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen)
         detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen)
@@ -253,23 +247,53 @@ class Tests(APITestCase):
         doctor.save()
         detective.save()
         mafia.save()
-        self.assertEqual(kill.neutralizer.count(), 1)
+        jailer = Role.objects.create(name=RoleEnum.jailer, team=TeamEnum.citizen)
+        jailer.abilities.add()
+        self.assertEqual(kill.neutralizer.count(), 2)
 
-    def test_start_game(self):
+    def test_four(self):
         self.test_init()
-        self.test_fill_member()
+        self.test_add_event()
+        self.fill_member('zari', 2)
+        self.fill_member('kari', 3)
+        self.fill_member('mari', 4)
+        self.fill_member('qari',5)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
-        dic = {1: 1, 2: 1, 3: 1, 4: 1}
-
+        dic = {1: 1, 2: 1, 3: 1, 4: 1, 5: 0}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        self.test_start_game()
+
+    def test_five(self):
+        self.test_init()
+        self.test_add_event()
+        self.fill_member('zari', 2)
+        self.fill_member('kari', 3)
+        self.fill_member('mari', 4)
+        self.fill_member('qari', 5)
+        self.fill_member('pari',6)
+
+        url = reverse('logic:create_game')
+        data = {'event_id': 1}
+        self.client.post(url, data, format='json')
+        dic = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1}
+        url = reverse('logic:set_game_role')
+        data = {'game_id': 1, 'role_dict': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.test_start_game()
+
+
+    def test_start_game(self):
         url = reverse('logic:day_to_night')
         data = {'game_id': 1}
         response = self.client.post(url, data, format='json')

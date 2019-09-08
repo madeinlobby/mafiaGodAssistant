@@ -65,6 +65,7 @@ class RoleEnum(Enum):
     doctor = 'دکتر'
     detective = 'کارآگاه'
     mafia = 'مافیا'
+    jailer = 'زندانبان'
 
     @classmethod
     def choices(cls):
