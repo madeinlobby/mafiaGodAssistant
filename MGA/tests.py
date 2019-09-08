@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from MGA.models import User, Event
-from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum
+from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum, TeamEnum, Player
 from mafiaGodAssistant import settings
 
 
@@ -132,7 +132,7 @@ class Tests(APITestCase):
         print(self.client.post(url, {'user_id': 3, 'event_id': 1}, format='json').status_code)
         print(self.client.post(url, {'user_id': 4, 'event_id': 1}, format='json').status_code)
         response = self.client.post(url, {'user_id': 1, 'event_id': 1}, format='json')
-        print(Event.objects.get(id=1).members)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_cafe(self):
@@ -236,16 +236,16 @@ class Tests(APITestCase):
         save.neutralizer.add(kill)
 
         Ability.objects.create(name=AbilityEnum.can_ask).save()
-        killAbility=Ability.objects.create(name=AbilityEnum.can_kil)
+        killAbility = Ability.objects.create(name=AbilityEnum.can_kil)
         killAbility.buffs.add(kill)
         kill.save()
-        saveAbility=Ability.objects.create(name=AbilityEnum.can_save)
+        saveAbility = Ability.objects.create(name=AbilityEnum.can_save)
         saveAbility.buffs.add(save)
         saveAbility.save()
-        Role.objects.create(name=RoleEnum.citizen).save()
-        doctor = Role.objects.create(name=RoleEnum.doctor)
-        detective = Role.objects.create(name=RoleEnum.detective)
-        mafia = Role.objects.create(name=RoleEnum.mafia)
+        Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen).save()
+        doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen)
+        detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen)
+        mafia = Role.objects.create(name=RoleEnum.mafia, team=TeamEnum.mafia)
         doctor.abilities.add(Ability.objects.get(id=3))
         detective.abilities.add(Ability.objects.get(id=1))
         mafia.abilities.add(Ability.objects.get(id=2))
@@ -256,4 +256,26 @@ class Tests(APITestCase):
 
     def test_start_game(self):
         self.test_init()
-        self.test_set_game_role_true()
+        self.test_fill_member()
+        url = reverse('logic:create_game')
+        data = {'event_id': 1}
+        self.client.post(url, data, format='json')
+        dic = {1: 1, 2: 1, 3: 1, 4: 1}
+        url = reverse('logic:set_game_role')
+        data = {'game_id': 1, 'role_dict': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:day_to_night')
+        data = {'game_id': 1}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:set_night_aim')
+        dic = {'مافیا': 'zari', 'دکتر': 'zari', 'کارآگاه': 'zari'}
+        data = {'aim_dic': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

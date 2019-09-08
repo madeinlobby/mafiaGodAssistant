@@ -9,11 +9,18 @@ class Duration(Enum):
     H24 = 24
     H48 = 48
     H12 = 12
-    always = 'always'
+    always = 10000000
 
     @classmethod
     def choices(cls):
         return tuple((i.name, i.value) for i in cls)
+
+    @classmethod
+    def get_duration_by_duration_name(cls, duration):
+        for i in cls:
+            if str(i) == duration:
+                return Duration(i.value)
+        return None
 
 
 class BuffType(Enum):
@@ -62,6 +69,9 @@ class RoleEnum(Enum):
     def choices(cls):
         return tuple((i.name, i.value) for i in cls)
 
+    def __str__(self):
+        return self.value
+
 
 class TeamEnum(Enum):
     mafia = 'مافیا'
@@ -76,7 +86,7 @@ class TeamEnum(Enum):
 class Role(models.Model):
     name = models.CharField(max_length=200, choices=RoleEnum.choices())
     abilities = models.ManyToManyField(Ability, blank=True)
-    team = models.CharField(max_length=50, choices=TeamEnum.choices())
+    team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None)
 
     def __str__(self):
         return self.name
@@ -93,3 +103,6 @@ class Player(models.Model):
     role = models.ForeignKey(Role, blank=True, default=None, on_delete=models.CASCADE)
     buffs = models.ManyToManyField(PlayerBuff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return self.user.username
