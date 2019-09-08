@@ -26,6 +26,7 @@ class Duration(Enum):
 class BuffType(Enum):
     Kill = 'kill'
     Save = 'save'
+    NotChange = 'در امان'
 
     @classmethod
     def choices(cls):
@@ -49,6 +50,7 @@ class AbilityEnum(Enum):
     can_save = 'نجات'
     can_ask = 'پرسش نقش'
     can_kil = 'کشتن فرد'
+    can_jail = 'زندانی کردن'
 
     @classmethod
     def choices(cls):
@@ -92,6 +94,8 @@ class Role(models.Model):
     name = models.CharField(max_length=200, choices=RoleEnum.choices())
     abilities = models.ManyToManyField(Ability, blank=True)
     team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None)
+    limit = models.IntegerField(default=100000, blank=True, null=True)
+
 
     def __str__(self):
         return self.name
@@ -108,6 +112,7 @@ class Player(models.Model):
     role = models.ForeignKey(Role, blank=True, default=None, on_delete=models.CASCADE)
     buffs = models.ManyToManyField(PlayerBuff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
+    limit = models.IntegerField(default=100000, blank=True, null=True)
 
     def __str__(self):
         return self.user.username

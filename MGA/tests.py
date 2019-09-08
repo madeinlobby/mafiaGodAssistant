@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from MGA.models import User, Event
-from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum, TeamEnum, Player
+from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum, TeamEnum, Player, Game
 from mafiaGodAssistant import settings
 
 
@@ -208,7 +208,10 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_set_game_role_true(self):
-        self.test_fill_member()
+        self.fill_member('zari', 2)
+        self.fill_member('kari', 3)
+        self.fill_member('mari', 4)
+        self.fill_member('qari', 5)
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
@@ -224,10 +227,9 @@ class Tests(APITestCase):
         kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True,
                                    function_name='kill')
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
-        jail_save = Buff.objects.create(duration=Duration.H24, type=BuffType.Save, priority=3, announce=True)
-        kill.neutralizer.add(save, jail_save)
+        not_change = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=True)
+        kill.neutralizer.add(save)
         save.neutralizer.add(kill)
-        jail_save.neutralizer.add(kill)
 
         Ability.objects.create(name=AbilityEnum.can_ask).save()
         killAbility = Ability.objects.create(name=AbilityEnum.can_kil)
@@ -235,6 +237,10 @@ class Tests(APITestCase):
         kill.save()
         saveAbility = Ability.objects.create(name=AbilityEnum.can_save)
         saveAbility.buffs.add(save)
+        saveAbility.save()
+
+        jailAbility = Ability.objects.create(name=AbilityEnum.can_jail)
+        jailAbility.buffs.add(not_change)
         saveAbility.save()
 
         Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen).save()
@@ -247,9 +253,31 @@ class Tests(APITestCase):
         doctor.save()
         detective.save()
         mafia.save()
-        jailer = Role.objects.create(name=RoleEnum.jailer, team=TeamEnum.citizen)
-        jailer.abilities.add()
-        self.assertEqual(kill.neutralizer.count(), 2)
+        jailer = Role.objects.create(name=RoleEnum.jailer, team=TeamEnum.citizen, limit=2)
+        jailer.abilities.add(jailAbility)
+        jailer.save()
+        self.assertEqual(kill.neutralizer.count(), 1)
+
+    def test_day_to_night(self):
+        url = reverse('logic:day_to_night')
+        data = {'game_id': 1}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_night_to_day(self):
+        url = reverse('logic:night_to_day')
+        data = {'game_id': 1}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def set_game_aim(self, dic):
+        url = reverse('logic:set_night_aim')
+        data = {'aim_dic': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_four(self):
         self.test_init()
@@ -257,7 +285,7 @@ class Tests(APITestCase):
         self.fill_member('zari', 2)
         self.fill_member('kari', 3)
         self.fill_member('mari', 4)
-        self.fill_member('qari',5)
+        self.fill_member('qari', 5)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
@@ -269,46 +297,35 @@ class Tests(APITestCase):
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.test_start_game()
+        self.test_day_to_night()
+        dic = {'مافیا': 'zari', 'دکتر': 'mari', 'کارآگاه': 'zari'}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
 
-    def test_five(self):
+    def test_six(self):
         self.test_init()
         self.test_add_event()
         self.fill_member('zari', 2)
         self.fill_member('kari', 3)
         self.fill_member('mari', 4)
         self.fill_member('qari', 5)
-        self.fill_member('pari',6)
+        self.fill_member('pari', 6)
+        self.fill_member('ali', 7)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
-        dic = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1}
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.test_start_game()
-
-
-    def test_start_game(self):
-        url = reverse('logic:day_to_night')
-        data = {'game_id': 1}
-        response = self.client.post(url, data, format='json')
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        url = reverse('logic:set_night_aim')
-        dic = {'مافیا': 'zari', 'دکتر': 'mari', 'کارآگاه': 'zari'}
-        data = {'aim_dic': dic}
-        response = self.client.post(url, data, format='json')
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        url = reverse('logic:night_to_day')
-        data = {'game_id': 1}
-        response = self.client.post(url, data, format='json')
-        print(response.data)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.test_day_to_night()
+        dic = {'مافیا': 'zari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': 'zari'}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+        players = Game.objects.get(id=1).player_set
+        for player in players.all():
+            print(player.limit)

@@ -1,10 +1,12 @@
+import itertools
+
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event, User
 from logic import buffLibrary
-from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff, TeamEnum
+from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff, TeamEnum, BuffType
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -19,18 +21,18 @@ def random_roles(role_dict, game_id):
     game = Game.objects.get(id=game_id)
     members = game.event.members
     all = 0
+    role_list = list()
     for role in role_dict:
-        all += role_dict[role]
+        for x in range(role_dict[role]):
+            role_list.append(role)
+            all += 1
 
     members = members.order_by('?')
     if all == len(members):
-        for (member, role) in zip(members, role_dict):
-            role_value = role_dict[role]
-            if role_value != 0:
-                role_dict[role] -= 1
-                role_obj = Role.objects.get(id=role)
-                Player.objects.create(status=True, user=member, role=role_obj, game=game).save()
-
+        for (member, role) in zip(members, role_list):
+            role_obj = Role.objects.get(id=role)
+            Player.objects.create(status=True, user=member, role=role_obj, game=game,
+                                  limit=role_obj.limit).save()
         game.save()
         dic = dict()
         for player in game.player_set.all():
@@ -75,13 +77,8 @@ def check_neutralizer(player):  # todo bug delete nadare be nazaret?
         for n_buff in buff.neutralizer.all():
             for buffNeu in player.buffs.all():
                 if buffNeu.type == n_buff.type:
-                    amount = buffNeu.player_duration
-                    buffNeu.player_duration -= buff.player_duration
-                    buff.player_duration -= amount
-                    if buffNeu.player_duration < 0:
-                        buffNeu.delete()
-                    if buff.player_duration < 0:
-                        buff.delete()
+                    buffNeu.delete()
+                    buff.delete()
 
 
 def set_buff_effect(player):
@@ -141,11 +138,16 @@ def order_awake(game):  # todo
     dictionary.update({str(RoleEnum.mafia): True})
 
     for player in players.all():
+        if player.limit < 0:
+            continue
         if str(player.role.name) == str(RoleEnum.doctor):
             dictionary.update({str(RoleEnum.doctor): player.status})
 
         if str(player.role.name) == str(RoleEnum.detective):
             dictionary.update({str(RoleEnum.detective): player.status})
+
+        if str(player.role.name) == str(RoleEnum.jailer):
+            dictionary.update({str(RoleEnum.jailer): player.status})
 
     return Response(dictionary)
 
@@ -165,7 +167,17 @@ def alive_player(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+def can_put_buff(player):
+    for ability in player.role.abilities.all():
+        for buff in ability.buffs.all():
+            if str(buff.type) == str(BuffType.NotChange):
+                return False
+    return True
+
+
 def make_buff(role, opponent):
+    if not can_put_buff(opponent):
+        return
     abilities = role.abilities
 
     for ability in abilities.all():
@@ -183,17 +195,30 @@ def make_buff(role, opponent):
             opponent.save()
 
 
+def decrease_limit(role, game):
+    players = game.player_set
+    for player in players.all():
+        if str(player.role.name) == str(role.name):
+            player.limit -= 1
+            player.save()
+            return
+
+
 @api_view(['POST'])
 def set_night_aims(request):
     response_dic = dict()
     aims_dic = request.data.get('aim_dic')
     for aim in aims_dic:
         role = Role.objects.get(name=RoleEnum(aim))
-        user = User.objects.get(username=aims_dic[aim])
-        player = Player.objects.get(user=user)
-        if role.name == str(RoleEnum.detective):
-            response_dic.update({role.name: player.role.team})
-        make_buff(role, player)
+
+        if aims_dic[aim]:
+            user = User.objects.get(username=aims_dic[aim])
+            player = Player.objects.get(user=user)
+            decrease_limit(role, player.game)
+            if role.name == str(RoleEnum.detective):
+                response_dic.update({role.name: player.role.team})
+            make_buff(role, player)
+
     return Response(response_dic)
 
 
