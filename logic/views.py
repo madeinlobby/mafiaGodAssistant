@@ -3,7 +3,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event, User
-from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff
+from logic import buffLibrary
+from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff, TeamEnum
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 
@@ -31,8 +32,11 @@ def random_roles(role_dict, game_id):
                 Player.objects.create(status=True, user=member, role=role_obj, game=game).save()
 
         game.save()
-        serializer = PlayerSerializer(game.player_set, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        dic = dict()
+        for player in game.player_set.all():
+            dic.update({player.user.username: str(player.role)})
+        # serializer = PlayerSerializer(game.player_set, many=True)
+        return Response(dic, status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -75,6 +79,14 @@ def check_neutralizer(player):  # todo bug delete nadare be nazaret?
                     buff.delete()
 
 
+def set_buff_effect(player):
+    for buff in player.buffs.all():
+        if buff.function_name:
+
+            method_to_call = getattr(buffLibrary, buff.function_name)
+            method_to_call(player)
+
+
 @api_view(['POST', 'GET'])
 def day_to_night(request):
     game_id = request.data.get('game_id')
@@ -85,6 +97,7 @@ def day_to_night(request):
         if player.status:
             decrease_duration(player)
             check_neutralizer(player)
+            set_buff_effect(player)
 
     return order_awake(game)
 
@@ -99,8 +112,12 @@ def night_to_day(request):
         if player.status:
             decrease_duration(player)
             check_neutralizer(player)
+            set_buff_effect(player)
 
-    return day_happening(game)
+    end = end_game(game)
+    if not end:
+        return day_happening(game)
+    return Response(end)
 
 
 def day_happening(game):
@@ -152,6 +169,7 @@ def make_buff(role, opponent):
         for buff in buffs.all():
             player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
                                                     priority=buff.priority, announce=buff.announce,
+                                                    function_name=buff.function_name,
                                                     player_duration=Duration.get_duration_by_duration_name(
                                                         buff.duration).value)
             for n in buff.neutralizer.all():
@@ -173,3 +191,23 @@ def set_night_aims(request):
             response_dic.update({role.name: player.role.team})
         make_buff(role, player)
     return Response(response_dic)
+
+
+def end_game(game):
+    players = game.player_set
+    citizen_count = 0
+    mafia_count = 0
+    for player in players.all():
+        if player.role.team == str(TeamEnum.citizen):
+            if player.status:
+                citizen_count += 1
+        elif player.role.team == str(TeamEnum.mafia):
+            if player.status:
+                mafia_count += 1
+
+    if mafia_count > citizen_count:
+        return str(TeamEnum.mafia)
+    if mafia_count == 0:
+        return str(TeamEnum.citizen)
+    else:
+        return False

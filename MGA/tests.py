@@ -230,7 +230,8 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_init(self):
-        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True)
+        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True,
+                                   function_name='kill')
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
         kill.neutralizer.add(save)
         save.neutralizer.add(kill)
@@ -257,10 +258,12 @@ class Tests(APITestCase):
     def test_start_game(self):
         self.test_init()
         self.test_fill_member()
+
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
         dic = {1: 1, 2: 1, 3: 1, 4: 1}
+
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
@@ -274,7 +277,7 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         url = reverse('logic:set_night_aim')
-        dic = {'مافیا': 'zari', 'دکتر': 'zari', 'کارآگاه': 'zari'}
+        dic = {'مافیا': 'zari', 'دکتر': 'mari', 'کارآگاه': 'zari'}
         data = {'aim_dic': dic}
         response = self.client.post(url, data, format='json')
         print(response.data)

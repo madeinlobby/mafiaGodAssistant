@@ -38,6 +38,7 @@ class Buff(models.Model):
     priority = models.IntegerField()
     announce = models.BooleanField()
     neutralizer = models.ManyToManyField('self', blank=True)
+    function_name = models.CharField(max_length=250, default=None, null=True)
 
 
 class PlayerBuff(Buff):
