@@ -10,5 +10,6 @@ urlpatterns = [
     path('setRoles/', views.set_game_role, name='set_game_role'),
     path('dayToNight/', views.day_to_night, name='day_to_night'),
     path('setNightAim/', views.set_night_aims, name='set_night_aim'),
+    path('nightToDay/', views.night_to_day, name='night_to_day'),
 
 ]

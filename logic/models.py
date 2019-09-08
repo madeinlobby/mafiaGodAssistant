@@ -82,6 +82,9 @@ class TeamEnum(Enum):
     def choices(cls):
         return tuple((i.name, i.value) for i in cls)
 
+    def __str__(self):
+        return 'تیم ' + self.value
+
 
 class Role(models.Model):
     name = models.CharField(max_length=200, choices=RoleEnum.choices())

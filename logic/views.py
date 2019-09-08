@@ -68,8 +68,8 @@ def decrease_duration(player):
 
 def check_neutralizer(player):  # todo bug delete nadare be nazaret?
     for buff in player.buffs.all():
-        for n_buff in buff.neutralizer:
-            for buffNeu in player.buff:
+        for n_buff in buff.neutralizer.all():
+            for buffNeu in player.buffs.all():
                 if buffNeu.type == n_buff.type:
                     buffNeu.delete()
                     buff.delete()
@@ -95,7 +95,7 @@ def night_to_day(request):
     game = Game.objects.get(id=game_id)
     players = game.player_set
 
-    for player in players:
+    for player in players.all():
         if player.status:
             decrease_duration(player)
             check_neutralizer(player)
@@ -106,12 +106,10 @@ def night_to_day(request):
 def day_happening(game):
     dictionary = dict()
     players = game.player_set
-    for player in players:
-        for buff in player.buffs:
+    for player in players.all():
+        for buff in player.buffs.all():
             if buff.announce:
-                dictionary.update({player.user.name: buff.type})
-            if buff.announce:
-                dictionary.update({player.user.name: buff.type})
+                dictionary.update({player.user.username: buff.type})
     return Response(dictionary)
 
 
@@ -154,7 +152,10 @@ def make_buff(role, opponent):
         for buff in buffs.all():
             player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
                                                     priority=buff.priority, announce=buff.announce,
-                                                    player_duration=Duration.get_duration_by_duration_name(buff.duration).value)
+                                                    player_duration=Duration.get_duration_by_duration_name(
+                                                        buff.duration).value)
+            for n in buff.neutralizer.all():
+                player_buff.neutralizer.add(n)
             player_buff.save()
             opponent.buffs.add(player_buff)
             opponent.save()
@@ -168,7 +169,7 @@ def set_night_aims(request):
         role = Role.objects.get(name=RoleEnum(aim))
         user = User.objects.get(username=aims_dic[aim])
         player = Player.objects.get(user=user)
-        if role.name == RoleEnum.detective:
+        if role.name == str(RoleEnum.detective):
             response_dic.update({role.name: player.role.team})
         make_buff(role, player)
     return Response(response_dic)
