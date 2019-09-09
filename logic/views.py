@@ -47,9 +47,16 @@ def random_roles(role_dict, game_id):
     if all == len(members):
         for (member, role) in zip(members, role_list):
             role_obj = Role.objects.get(id=role)
-            Player.objects.create(status=True, user=member, role=role_obj, game=game,
-                                  limit=role_obj.limit, wake_up_limit=WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
-                    role_obj.wake_up).value).save()
+            player = Player.objects.create(status=True, user=member, role=role_obj, game=game,
+                                           limit=role_obj.limit,
+                                           wake_up_limit=WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
+                                               role_obj.wake_up).value)
+            for buff in player.role.own_buffs.all():
+                player_buff = make_player_buff(buff, role_obj)
+                player.buffs.add(player_buff)
+
+            player.save()
+
         game.save()
         dic = dict()
         for player in game.player_set.all():
@@ -109,12 +116,13 @@ def decrease_duration(player):
 
 
 def check_neutralizer(player):  # todo bug delete nadare be nazaret?
-    for buff in player.buffs.all():
-        for n_buff in buff.neutralizer.all():
-            for buffNeu in player.buffs.all():
-                if buffNeu.type == n_buff.type:
-                    buffNeu.delete()
-                    buff.delete()
+    return
+    # for buff in player.buffs.all():
+    #     for n_buff in buff.neutralizer.all():
+    #         for buffNeu in player.buffs.all():
+    #             if buffNeu.type == n_buff.type:
+    #                 buffNeu.delete()
+    #                 buff.delete()
 
 
 def set_buff_effect(player):
@@ -192,7 +200,9 @@ def order_awake(game):  # todo
                 player.role.wake_up).value
             player.save()
 
-            role_awake(player, dictionary, RoleEnum.grave_digger)
+            limited_role_awake(player, dictionary, RoleEnum.grave_digger)
+
+            role_awake(player, dictionary, RoleEnum.jesus)
 
             role_awake(player, dictionary, RoleEnum.priest)
 
@@ -242,6 +252,25 @@ def can_put_buff(player):
     return True
 
 
+def make_player_buff(buff, role):
+    player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
+                                            priority=buff.priority, announce=buff.announce,
+                                            function_name=buff.function_name, put_player_role=role.name,
+                                            player_duration=Duration.get_duration_by_duration_name(
+                                                buff.duration).value)
+    return player_buff
+
+
+def check_neu_on_put_buff(buff, player):
+    for neu in buff.neutralizer.all():
+        for player_buff in player.buffs.all():
+            if player_buff.type == neu.type:
+                player_buff.delete()
+                return False
+
+    return True
+
+
 def make_buff(role, opponent):
     if can_put_buff(opponent):
         abilities = role.abilities
@@ -249,16 +278,13 @@ def make_buff(role, opponent):
         for ability in abilities.all():
             buffs = ability.buffs
             for buff in buffs.all():
-                player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
-                                                        priority=buff.priority, announce=buff.announce,
-                                                        function_name=buff.function_name, put_player_role=role.name,
-                                                        player_duration=Duration.get_duration_by_duration_name(
-                                                            buff.duration).value)
-                for n in buff.neutralizer.all():
-                    player_buff.neutralizer.add(n)
-                player_buff.save()
-                opponent.buffs.add(player_buff)
-                opponent.save()
+                if check_neu_on_put_buff(buff, opponent):
+                    player_buff = make_player_buff(buff, role)
+                    for n in buff.neutralizer.all():
+                        player_buff.neutralizer.add(n)
+                    player_buff.save()
+                    opponent.buffs.add(player_buff)
+                    opponent.save()
 
 
 def decrease_limit(role, game):

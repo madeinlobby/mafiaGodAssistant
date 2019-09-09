@@ -225,19 +225,26 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_init(self):
-        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True,
+        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=1, announce=True,
                                    function_name='kill')
-        save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
+        save = Buff.objects.create(duration=Duration.H24, type=BuffType.Save, priority=1, announce=False)
         save_at_night = Buff.objects.create(duration=Duration.always, type=BuffType.Save_at_night, priority=3,
                                             announce=False)
         save_at_night.save()
+        one_shot_alive = Buff.objects.create(duration=Duration.always, type=BuffType.One_shot_alive, priority=4,
+                                             announce=False)
         jailBuff = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange_announce, priority=1,
                                        announce=True)
         aman = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=False)
         silent = Buff.objects.create(duration=Duration.H24, type=BuffType.Silent, priority=1, announce=True)
         silent.save()
         kill.neutralizer.add(save)
+        kill.neutralizer.add(one_shot_alive)
+        one_shot_alive.neutralizer.add(kill)
         save.neutralizer.add(kill)
+        save.save()
+        one_shot_alive.save()
+        kill.save()
 
         send_role = Buff.objects.create(duration=Duration.always, type=BuffType.SendRole, priority=1, announce=False,
                                         function_name='send_role')
@@ -247,6 +254,11 @@ class Tests(APITestCase):
                                            announce=True,
                                            function_name='make_citizen')
         make_citizen.save()
+
+        make_alive = Buff.objects.create(duration=Duration.H12, type=BuffType.Make_alive, priority=1,
+                                         announce=True,
+                                         function_name='make_alive')
+        make_alive.save()
 
         can_ask = Ability.objects.create(name=AbilityEnum.can_ask)
         can_ask.save()
@@ -283,6 +295,14 @@ class Tests(APITestCase):
         make_citizen_ability = Ability.objects.create(name=AbilityEnum.can_change_role_to_citizen)
         make_citizen_ability.buffs.add(make_citizen)
         make_citizen_ability.save()
+
+        make_alive_ability = Ability.objects.create(name=AbilityEnum.can_alive)
+        make_alive_ability.buffs.add(make_alive)
+        make_alive_ability.save()
+
+        one_shot_ability = Ability.objects.create(name=AbilityEnum.one_shot_alive)
+        one_shot_ability.buffs.add(one_shot_alive)
+        one_shot_ability.save()
 
         Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night).save()
         doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
@@ -329,6 +349,7 @@ class Tests(APITestCase):
         priest = Role.objects.create(name=RoleEnum.priest, team=TeamEnum.citizen,
                                      wake_up=WakeUpEnum.every_three_night)
         priest.abilities.add(make_citizen_ability)
+        priest.own_buffs.add(one_shot_alive)
         priest.save()
 
         grave_digger = Role.objects.create(name=RoleEnum.grave_digger, team=TeamEnum.citizen, limit=2,
@@ -336,12 +357,17 @@ class Tests(APITestCase):
         grave_digger.abilities.add(can_ask)
         grave_digger.save()
 
-        insincere = Role.objects.create(name=RoleEnum.insincere, team=TeamEnum.mafia, limit=2,
-                                           wake_up=WakeUpEnum.every_night)
+        insincere = Role.objects.create(name=RoleEnum.insincere, team=TeamEnum.mafia,
+                                        wake_up=WakeUpEnum.every_night)
         insincere.abilities.add(revers_inquiry)
         insincere.save()
 
-        self.assertEqual(kill.neutralizer.count(), 1)
+        jesus = Role.objects.create(name=RoleEnum.jesus, team=TeamEnum.citizen,
+                                    wake_up=WakeUpEnum.every_five_night)
+        jesus.abilities.add(make_alive_ability)
+        jesus.save()
+
+        self.assertEqual(kill.neutralizer.count(), 2)
 
     def test_day_to_night(self):
         url = reverse('logic:day_to_night')
@@ -387,7 +413,7 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
 
-    def test_fourteen(self):
+    def test_fifteen(self):
         self.test_init()
         self.test_add_event()
         self.fill_member('zari', 2)
@@ -404,11 +430,13 @@ class Tests(APITestCase):
         self.fill_member('elnaz', 13)
         self.fill_member('rahim', 14)
         self.fill_member('javad', 15)
+        self.fill_member('haniye', 16)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
-        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1,13:1}
+
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
@@ -423,7 +451,7 @@ class Tests(APITestCase):
 
         self.test_day_to_night()
 
-        dic = {'زندانبان': 'kari', 'مافیا': 'zari', 'دکتر': 'mari', 'جراح': 'ali',
+        dic = {'زندانبان': 'kari', 'مافیا': 'zari', 'دکتر': 'karim', 'جراح': 'ali',
                'دندان پزشک': 'bari'}
         self.set_game_aim(dic)
 
@@ -538,5 +566,90 @@ class Tests(APITestCase):
         self.test_night_to_day()
 
         self.test_day_to_night()
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+    def test_priest(self):
+        self.test_init()
+        self.test_add_event()
+        self.fill_member('zari', 2)
+        self.fill_member('kari', 3)
+        self.fill_member('mari', 4)
+        self.fill_member('qari', 5)
+        self.fill_member('pari', 6)
+        self.fill_member('ali', 7)
+        self.fill_member('bari', 8)
+        self.fill_member('zahra', 9)
+        self.fill_member('karim', 10)
+        self.fill_member('baqer', 11)
+        self.fill_member('saba', 12)
+        self.fill_member('elnaz', 13)
+        self.fill_member('rahim', 14)
+        self.fill_member('javad', 15)
+        self.fill_member('haniye', 16)
+
+        url = reverse('logic:create_game')
+        data = {'event_id': 1}
+        self.client.post(url, data, format='json')
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1}
+        url = reverse('logic:set_game_role')
+        data = {'game_id': 1, 'role_dict': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:speech_for_start')
+        data = {'game_id': 1}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.test_day_to_night()
+        game = Game.objects.get(id=1)
+        players = game.player_set
+        killshe = 'zara'
+        for player in players.all():
+            if player.role.name == str(RoleEnum.priest.value):
+                killshe = player.user.username
+                break
+
+        print()
+        print('keshiiiiiiiiiiiiiiiiiiiiiiish')
+        print(killshe)
+
+        dic = {'زندانبان': 'kari', 'مافیا': killshe, 'دکتر': killshe, 'جراح': 'ali',
+               'دندان پزشک': 'bari'}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+        print('-------------------------------')
+
+        self.test_day_to_night()
+        dic = {'مافیا': killshe, 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+        print('---------------------------------')
+
+        self.test_day_to_night()
+        dic = {'زندانبان': '', 'قهرمان': 'ali', 'مافیا': 'mari', 'دکتر': 'qari', 'جراح': 'ali',
+               'دندان پزشک': ''}
+        self.set_game_aim(dic)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'کارآگاه', 'player_username': 'zahra'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.test_night_to_day()
+
+        self.test_day_to_night()
+        dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+        self.test_day_to_night()
+        dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
         self.set_game_aim(dic)
         self.test_night_to_day()

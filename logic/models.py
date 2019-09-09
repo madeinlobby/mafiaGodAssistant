@@ -10,6 +10,7 @@ class WakeUpEnum(Enum):
     every_one_night = 1
     every_two_night = 2
     every_three_night = 3
+    every_five_night = 5
 
     @classmethod
     def choices(cls):
@@ -50,6 +51,8 @@ class BuffType(Enum):
     SendRole = 'ارسال نقش'
     Save_at_night = 'نمردن در شب'
     Make_citizen = 'تبدیل به شهروند عادی'
+    Make_alive = 'زنده کردن'
+    One_shot_alive = 'یکبار سیو در مقابل گلوله'
 
     @classmethod
     def choices(cls):
@@ -81,6 +84,8 @@ class AbilityEnum(Enum):
     can_save_at_night = 'زنده ماندن در شب'
     can_change_role_to_citizen = 'تبدیل به شهروند عادی'
     reverse_inquiry = 'استعلام برعکس'
+    can_alive = 'زنده کردن'
+    one_shot_alive = 'یکبار سیو شدن در برابر گلوله'
 
     @classmethod
     def choices(cls):
@@ -106,6 +111,7 @@ class RoleEnum(Enum):
     priest = 'کشیش'
     grave_digger = 'گورکن'
     insincere = 'دورو'
+    jesus = 'عیسی'
     mayor = 'شهردار'
 
     @classmethod
@@ -136,6 +142,7 @@ class Role(models.Model):
     team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None)
     limit = models.IntegerField(default=100000, blank=True, null=True)
     wake_up = models.CharField(max_length=250, default=0, blank=True, null=True, choices=WakeUpEnum.choices())
+    own_buffs = models.ManyToManyField(Buff, blank=True)
 
     def __str__(self):
         return self.name

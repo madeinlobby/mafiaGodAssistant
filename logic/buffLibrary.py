@@ -2,7 +2,7 @@
 buff library
 ==________==
 """
-from logic.models import Role, WakeUpEnum, RoleEnum
+from logic.models import Role, WakeUpEnum, RoleEnum, PlayerBuff, Buff, BuffType, Duration
 
 
 def kill(player_buff, player):
@@ -31,3 +31,17 @@ def make_citizen(player_buff, player):  # wolfman ->citizen
         player.wake_up_limit = WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
             role_obj.wake_up).value
         player.save()
+
+
+def make_alive(player_buff, player):
+    player.status = True
+    buff = Buff.objects.get(type=str(BuffType.Silent.value))
+    player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
+                                            priority=buff.priority, announce=buff.announce,
+                                            function_name=buff.function_name,
+                                            put_player_role=player_buff.put_player_role,
+                                            player_duration=Duration.get_duration_by_duration_name(
+                                                buff.duration).value)
+    player_buff.save()
+    player.buffs.add(player_buff)
+    player.save()
