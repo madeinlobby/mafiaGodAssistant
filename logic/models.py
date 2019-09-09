@@ -5,6 +5,10 @@ from django.db import models
 from MGA.models import User, Event
 
 
+class WakeUpEnum(Enum):
+    each_night = 100000
+
+
 class Duration(Enum):
     H24 = 24
     H48 = 48

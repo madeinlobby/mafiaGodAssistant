@@ -150,6 +150,19 @@ def day_happening(game):
     return Response(dictionary)
 
 
+def limited_role_awake(player, dictionary, role_name):
+    if str(player.role.name) == str(role_name):
+        if player.limit == 0:
+            dictionary.update({str(role_name): 'limited'})
+        else:
+            dictionary.update({str(role_name): player.status})
+
+
+def role_awake(player, dictionary, role_name):
+    if str(player.role.name) == str(role_name):
+        dictionary.update({str(role_name): player.status})
+
+
 def order_awake(game):  # todo
     dictionary = dict()
     players = game.player_set
@@ -157,16 +170,16 @@ def order_awake(game):  # todo
     dictionary.update({str(RoleEnum.mafia): True})
 
     for player in players.all():
-        if player.limit < 0:
-            continue
-        if str(player.role.name) == str(RoleEnum.doctor):
-            dictionary.update({str(RoleEnum.doctor): player.status})
 
-        if str(player.role.name) == str(RoleEnum.detective):
-            dictionary.update({str(RoleEnum.detective): player.status})
+        role_awake(player, dictionary, RoleEnum.doctor)
 
-        if str(player.role.name) == str(RoleEnum.jailer):
-            dictionary.update({str(RoleEnum.jailer): player.status})
+        role_awake(player, dictionary, RoleEnum.detective)
+
+        limited_role_awake(player, dictionary, RoleEnum.jailer)
+
+        limited_role_awake(player, dictionary, RoleEnum.surgeon)
+
+        limited_role_awake(player, dictionary, RoleEnum.dentist)
 
     return Response(dictionary)
 
