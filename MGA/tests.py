@@ -228,14 +228,28 @@ class Tests(APITestCase):
         kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True,
                                    function_name='kill')
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
-        jailBuff = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange_announce, priority=1, announce=True)
-        aman=Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=False)
+        save_at_night = Buff.objects.create(duration=Duration.always, type=BuffType.Save_at_night, priority=3,
+                                            announce=False)
+        save_at_night.save()
+        jailBuff = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange_announce, priority=1,
+                                       announce=True)
+        aman = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=False)
         silent = Buff.objects.create(duration=Duration.H24, type=BuffType.Silent, priority=1, announce=True)
         silent.save()
         kill.neutralizer.add(save)
         save.neutralizer.add(kill)
 
-        Ability.objects.create(name=AbilityEnum.can_ask).save()
+        send_role = Buff.objects.create(duration=Duration.always, type=BuffType.SendRole, priority=1, announce=False,
+                                        function_name='send_role')
+        send_role.save()
+
+        make_citizen = Buff.objects.create(duration=Duration.always, type=BuffType.Make_citizen, priority=1,
+                                           announce=True,
+                                           function_name='make_citizen')
+        make_citizen.save()
+
+        can_ask = Ability.objects.create(name=AbilityEnum.can_ask)
+        can_ask.save()
         killAbility = Ability.objects.create(name=AbilityEnum.can_kil)
         killAbility.buffs.add(kill)
         kill.save()
@@ -255,13 +269,28 @@ class Tests(APITestCase):
         silentAbility.buffs.add(silent)
         saveAbility.save()
 
+        revers_inquiry = Ability.objects.create(name=AbilityEnum.reverse_inquiry)
+        revers_inquiry.save()
+
+        send_role_abiity = Ability.objects.create(name=AbilityEnum.can_send_role)
+        send_role_abiity.buffs.add(send_role)
+        send_role_abiity.save()
+
+        save_at_night_ability = Ability.objects.create(name=AbilityEnum.can_save_at_night)
+        save_at_night_ability.buffs.add(save_at_night)
+        save_at_night_ability.save()
+
+        make_citizen_ability = Ability.objects.create(name=AbilityEnum.can_change_role_to_citizen)
+        make_citizen_ability.buffs.add(make_citizen)
+        make_citizen_ability.save()
+
         Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night).save()
         doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
         detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
         mafia = Role.objects.create(name=RoleEnum.mafia, team=TeamEnum.mafia, wake_up=WakeUpEnum.every_night)
-        doctor.abilities.add(Ability.objects.get(id=3))
-        detective.abilities.add(Ability.objects.get(id=1))
-        mafia.abilities.add(Ability.objects.get(id=2))
+        doctor.abilities.add(saveAbility)
+        detective.abilities.add(can_ask)
+        mafia.abilities.add(killAbility)
         doctor.save()
         detective.save()
         mafia.save()
@@ -285,6 +314,32 @@ class Tests(APITestCase):
                                    wake_up=WakeUpEnum.every_one_night)
         hero.abilities.add(heroAbility)
         hero.save()
+
+        wolfman = Role.objects.create(name=RoleEnum.wolfman, team=TeamEnum.werewolf,
+                                      wake_up=WakeUpEnum.every_three_night)
+        wolfman.abilities.add(heroAbility)
+        wolfman.abilities.add(save_at_night_ability)
+        wolfman.save()
+
+        simin = Role.objects.create(name=RoleEnum.simin, team=TeamEnum.citizen,
+                                    wake_up=WakeUpEnum.every_night)
+        simin.abilities.add(can_ask)
+        simin.save()
+
+        priest = Role.objects.create(name=RoleEnum.priest, team=TeamEnum.citizen,
+                                     wake_up=WakeUpEnum.every_three_night)
+        priest.abilities.add(make_citizen_ability)
+        priest.save()
+
+        grave_digger = Role.objects.create(name=RoleEnum.grave_digger, team=TeamEnum.citizen, limit=2,
+                                           wake_up=WakeUpEnum.every_night)
+        grave_digger.abilities.add(can_ask)
+        grave_digger.save()
+
+        insincere = Role.objects.create(name=RoleEnum.insincere, team=TeamEnum.mafia, limit=2,
+                                           wake_up=WakeUpEnum.every_night)
+        insincere.abilities.add(revers_inquiry)
+        insincere.save()
 
         self.assertEqual(kill.neutralizer.count(), 1)
 
@@ -332,7 +387,7 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
 
-    def test_nine(self):
+    def test_fourteen(self):
         self.test_init()
         self.test_add_event()
         self.fill_member('zari', 2)
@@ -344,11 +399,16 @@ class Tests(APITestCase):
         self.fill_member('bari', 8)
         self.fill_member('zahra', 9)
         self.fill_member('karim', 10)
+        self.fill_member('baqer', 11)
+        self.fill_member('saba', 12)
+        self.fill_member('elnaz', 13)
+        self.fill_member('rahim', 14)
+        self.fill_member('javad', 15)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
-        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1}
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1,13:1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
@@ -372,11 +432,98 @@ class Tests(APITestCase):
         response = self.client.post(url, data, format='json')
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'سیمین', 'player_username': 'mari'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         self.test_night_to_day()
 
         self.test_day_to_night()
-        dic = {'زندانبان': '', 'قهرمان': 'ali', 'مافیا': 'mari', 'دکتر': 'mari', 'جراح': 'ali',
+        dic = {'زندانبان': '', 'قهرمان': 'ali', 'مافیا': 'mari', 'دکتر': 'qari', 'جراح': 'ali',
                'دندان پزشک': ''}
+        self.set_game_aim(dic)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'کارآگاه', 'player_username': 'zahra'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'گورکن', 'player_username': 'zari'}
+        response = self.client.post(url, data, format='json')
+        print('استعلام گورکن')
+        print(response.data)
+        print()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.test_night_to_day()
+
+        self.test_day_to_night()
+        dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+        self.test_day_to_night()
+        dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+    def test_check_night(self):
+        self.test_init()
+        self.test_add_event()
+        self.fill_member('zari', 2)
+        self.fill_member('kari', 3)
+        self.fill_member('mari', 4)
+        self.fill_member('qari', 5)
+        self.fill_member('pari', 6)
+        self.fill_member('ali', 7)
+        self.fill_member('bari', 8)
+        self.fill_member('zahra', 9)
+        self.fill_member('karim', 10)
+        self.fill_member('baqer', 11)
+        self.fill_member('saba', 12)
+
+        url = reverse('logic:create_game')
+        data = {'event_id': 1}
+        self.client.post(url, data, format='json')
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1}
+        url = reverse('logic:set_game_role')
+        data = {'game_id': 1, 'role_dict': dic}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:speech_for_start')
+        data = {'game_id': 1}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.test_day_to_night()
+
+        dic = {'زندانبان': 'kari', 'مافیا': 'zari', 'دکتر': 'mari', 'جراح': 'ali',
+               'دندان پزشک': 'bari'}
+        self.set_game_aim(dic)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'کارآگاه', 'player_username': 'mari'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'سیمین', 'player_username': 'mari'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.test_night_to_day()
+        dic = {}
+        self.test_day_to_night()
         self.set_game_aim(dic)
 
         url = reverse('logic:ask_god')
@@ -386,7 +533,10 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.test_night_to_day()
 
-        # self.test_day_to_night()
-        # dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
-        # self.set_game_aim(dic)
-        # self.test_night_to_day()
+        self.test_day_to_night()
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+        self.test_day_to_night()
+        self.set_game_aim(dic)
+        self.test_night_to_day()

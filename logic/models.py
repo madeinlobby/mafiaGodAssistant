@@ -47,6 +47,9 @@ class BuffType(Enum):
     NotChange_announce = 'در امان(خارج از بازی)'
     Silent = 'سکوت'
     NotChange = 'در امان(داخل از بازی)'
+    SendRole = 'ارسال نقش'
+    Save_at_night = 'نمردن در شب'
+    Make_citizen = 'تبدیل به شهروند عادی'
 
     @classmethod
     def choices(cls):
@@ -64,6 +67,7 @@ class Buff(models.Model):
 
 class PlayerBuff(Buff):
     player_duration = models.IntegerField()
+    put_player_role = models.CharField(max_length=200, blank=True, null=True, default='none')
 
 
 class AbilityEnum(Enum):
@@ -73,6 +77,10 @@ class AbilityEnum(Enum):
     can_jail = 'زندانی کردن'
     can_silence = 'ساکت کردن'
     can_protect = 'محافظت کردن'
+    can_send_role = 'ارسال نقش'
+    can_save_at_night = 'زنده ماندن در شب'
+    can_change_role_to_citizen = 'تبدیل به شهروند عادی'
+    reverse_inquiry = 'استعلام برعکس'
 
     @classmethod
     def choices(cls):
@@ -93,6 +101,11 @@ class RoleEnum(Enum):
     dentist = 'دندان پزشک'
     surgeon = 'جراح'
     hero = 'قهرمان'
+    wolfman = 'گرگ نما'
+    simin = 'سیمین'
+    priest = 'کشیش'
+    grave_digger = 'گورکن'
+    insincere = 'دورو'
     mayor = 'شهردار'
 
     @classmethod
@@ -107,6 +120,7 @@ class TeamEnum(Enum):
     mafia = 'مافیا'
     citizen = 'شهروندان'
     independence = 'مستقل'
+    werewolf = 'گرگینه ها'
 
     @classmethod
     def choices(cls):

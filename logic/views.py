@@ -4,11 +4,11 @@ from rest_framework.response import Response
 
 from MGA.models import Event, User
 from logic import buffLibrary
-from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff, TeamEnum, BuffType, WakeUpEnum
+from logic.models import Role, Game, Player, Duration, RoleEnum, PlayerBuff, TeamEnum, BuffType, WakeUpEnum
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
 
 """
-playerbuff va player dastiye
+playerbuff va player dastiye va send_role(buff lib)
 """
 
 
@@ -121,7 +121,7 @@ def set_buff_effect(player):
     for buff in player.buffs.all():
         if buff.function_name:
             method_to_call = getattr(buffLibrary, buff.function_name)
-            method_to_call(player)
+            method_to_call(buff, player)
 
 
 @api_view(['POST', 'GET'])
@@ -191,11 +191,20 @@ def order_awake(game):  # todo
             player.wake_up_limit = WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
                 player.role.wake_up).value
             player.save()
+
+            role_awake(player, dictionary, RoleEnum.grave_digger)
+
+            role_awake(player, dictionary, RoleEnum.priest)
+
+            role_awake(player, dictionary, RoleEnum.wolfman)
+
             role_awake(player, dictionary, RoleEnum.hero)
 
             role_awake(player, dictionary, RoleEnum.doctor)
 
             role_awake(player, dictionary, RoleEnum.detective)
+
+            role_awake(player, dictionary, RoleEnum.simin)
 
             limited_role_awake(player, dictionary, RoleEnum.jailer)
 
@@ -242,7 +251,7 @@ def make_buff(role, opponent):
             for buff in buffs.all():
                 player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
                                                         priority=buff.priority, announce=buff.announce,
-                                                        function_name=buff.function_name,
+                                                        function_name=buff.function_name, put_player_role=role.name,
                                                         player_duration=Duration.get_duration_by_duration_name(
                                                             buff.duration).value)
                 for n in buff.neutralizer.all():
@@ -278,7 +287,7 @@ def set_night_aims(request):
     return Response(response_dic)
 
 
-@api_view(['POST','GET'])
+@api_view(['POST', 'GET'])
 def ask_god(request):
     game_id = request.data.get('game_id')
     role = request.data.get('role_name')
@@ -293,7 +302,15 @@ def ask_god(request):
     if not asked_player:
         return Response(status=status.HTTP_400_BAD_REQUEST)
     if role == str(RoleEnum.detective.value):
+        if asked_player.role.name == str(RoleEnum.insincere.value):
+            return Response(str(TeamEnum.citizen), status=status.HTTP_200_OK)
         return Response(asked_player.role.team, status=status.HTTP_200_OK)
+    elif role == str(RoleEnum.simin.value):
+        return Response(asked_player.role.name == str(RoleEnum.wolfman.value), status=status.HTTP_200_OK)
+    elif role == str(RoleEnum.grave_digger.value):
+        if asked_player.status:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({asked_player.user.username: asked_player.role.name}, status=status.HTTP_200_OK)
 
 
 def end_game(game):
@@ -301,6 +318,7 @@ def end_game(game):
     citizen_count = 0
     mafia_count = 0
     independent_count = 0
+    werewolf_count = 0
     for player in players.all():
         if player.role.team == str(TeamEnum.citizen):
             if player.status:
@@ -311,11 +329,16 @@ def end_game(game):
         elif player.role.team == str(TeamEnum.independence):
             if player.status:
                 independent_count += 1
+        elif player.role.team == str(TeamEnum.werewolf):
+            if player.status:
+                werewolf_count += 1
 
-    if mafia_count >= (citizen_count + independent_count + mafia_count) / 2:
+    if mafia_count >= (players.all().count()) / 2:
         return str(TeamEnum.mafia)
     if mafia_count == 0 and independent_count == 0:
         return str(TeamEnum.citizen)
+    if werewolf_count >= (players.all().count()) / 2:
+        return str(TeamEnum.werewolf)
     else:
         return False
 
