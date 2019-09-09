@@ -43,6 +43,24 @@ def random_roles(role_dict, game_id):
 
 
 @api_view(['POST', 'GET'])
+def speech_for_start_game(request):
+    game_id = request.data.get('game_id')
+    game = Game.objects.get(id=game_id)
+    players = game.player_set
+    dic = dict()
+    have_mayor = False
+    for player in players.all():
+        if player.role.name == str(RoleEnum.mayor):
+            have_mayor = True
+        if player.role.name == str(RoleEnum.surgeon) or player.role.name == str(RoleEnum.doctor):
+            dic.update({player.role.name: 'دست ها را بالا بیاورید تا شهردار ببیند'})
+
+    if have_mayor:
+        return Response(dic)
+    return Response()
+
+
+@api_view(['POST', 'GET'])
 def set_game_role(request):
     game_id = request.data.get('game_id')
     role_dict = request.data.get('role_dict')
@@ -68,7 +86,8 @@ def decrease_duration(player):
         if buff.duration == Duration.always:
             continue
         buff.player_duration -= 12
-        if buff.player_duration < 0:
+        buff.save()
+        if buff.player_duration <= 0:
             buff.delete()
 
 
@@ -176,23 +195,22 @@ def can_put_buff(player):
 
 
 def make_buff(role, opponent):
-    if not can_put_buff(opponent):
-        return
-    abilities = role.abilities
+    if can_put_buff(opponent):
+        abilities = role.abilities
 
-    for ability in abilities.all():
-        buffs = ability.buffs
-        for buff in buffs.all():
-            player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
-                                                    priority=buff.priority, announce=buff.announce,
-                                                    function_name=buff.function_name,
-                                                    player_duration=Duration.get_duration_by_duration_name(
-                                                        buff.duration).value)
-            for n in buff.neutralizer.all():
-                player_buff.neutralizer.add(n)
-            player_buff.save()
-            opponent.buffs.add(player_buff)
-            opponent.save()
+        for ability in abilities.all():
+            buffs = ability.buffs
+            for buff in buffs.all():
+                player_buff = PlayerBuff.objects.create(duration=buff.duration, type=buff.type,
+                                                        priority=buff.priority, announce=buff.announce,
+                                                        function_name=buff.function_name,
+                                                        player_duration=Duration.get_duration_by_duration_name(
+                                                            buff.duration).value)
+                for n in buff.neutralizer.all():
+                    player_buff.neutralizer.add(n)
+                player_buff.save()
+                opponent.buffs.add(player_buff)
+                opponent.save()
 
 
 def decrease_limit(role, game):
@@ -210,8 +228,7 @@ def set_night_aims(request):
     aims_dic = request.data.get('aim_dic')
     for aim in aims_dic:
         role = Role.objects.get(name=RoleEnum(aim))
-
-        if aims_dic[aim]:
+        if aims_dic[aim] != '':
             user = User.objects.get(username=aims_dic[aim])
             player = Player.objects.get(user=user)
             decrease_limit(role, player.game)
@@ -226,6 +243,7 @@ def end_game(game):
     players = game.player_set
     citizen_count = 0
     mafia_count = 0
+    independent_count = 0
     for player in players.all():
         if player.role.team == str(TeamEnum.citizen):
             if player.status:
@@ -233,10 +251,13 @@ def end_game(game):
         elif player.role.team == str(TeamEnum.mafia):
             if player.status:
                 mafia_count += 1
+        elif player.role.team == str(TeamEnum.independence):
+            if player.status:
+                independent_count += 1
 
-    if mafia_count > citizen_count:
+    if mafia_count >= (citizen_count + independent_count + mafia_count) / 2:
         return str(TeamEnum.mafia)
-    if mafia_count == 0:
+    if mafia_count == 0 and independent_count == 0:
         return str(TeamEnum.citizen)
     else:
         return False

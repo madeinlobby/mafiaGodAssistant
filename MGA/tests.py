@@ -228,6 +228,8 @@ class Tests(APITestCase):
                                    function_name='kill')
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
         not_change = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=True)
+        silent = Buff.objects.create(duration=Duration.H24, type=BuffType.Silent, priority=1, announce=True)
+        silent.save()
         kill.neutralizer.add(save)
         save.neutralizer.add(kill)
 
@@ -243,6 +245,10 @@ class Tests(APITestCase):
         jailAbility.buffs.add(not_change)
         saveAbility.save()
 
+        silentAbility = Ability.objects.create(name=AbilityEnum.can_silence)
+        silentAbility.buffs.add(silent)
+        saveAbility.save()
+
         Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen).save()
         doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen)
         detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen)
@@ -253,9 +259,19 @@ class Tests(APITestCase):
         doctor.save()
         detective.save()
         mafia.save()
+
         jailer = Role.objects.create(name=RoleEnum.jailer, team=TeamEnum.citizen, limit=2)
         jailer.abilities.add(jailAbility)
         jailer.save()
+
+        dentist = Role.objects.create(name=RoleEnum.dentist, team=TeamEnum.citizen, limit=2)
+        dentist.abilities.add(silentAbility)
+        dentist.save()
+
+        sergeon = Role.objects.create(name=RoleEnum.surgeon, team=TeamEnum.mafia, limit=2)
+        sergeon.abilities.add(saveAbility)
+        sergeon.save()
+
         self.assertEqual(kill.neutralizer.count(), 1)
 
     def test_day_to_night(self):
@@ -302,7 +318,7 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
 
-    def test_six(self):
+    def test_eight(self):
         self.test_init()
         self.test_add_event()
         self.fill_member('zari', 2)
@@ -311,21 +327,37 @@ class Tests(APITestCase):
         self.fill_member('qari', 5)
         self.fill_member('pari', 6)
         self.fill_member('ali', 7)
+        self.fill_member('bari', 8)
+        self.fill_member('zahra', 9)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
-        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1}
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1,7:1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
         print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        url = reverse('logic:speech_for_start')
+        data = {'game_id': 1}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
         self.test_day_to_night()
-        dic = {'مافیا': 'zari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': 'zari'}
+        dic = {'زندانبان': 'kari', 'مافیا': 'zari', 'دکتر': 'mari', 'جراح': 'ali', 'کارآگاه': 'zari',
+               'دندان پزشک': 'bari'}
         self.set_game_aim(dic)
         self.test_night_to_day()
-        players = Game.objects.get(id=1).player_set
-        for player in players.all():
-            print(player.limit)
+
+        self.test_day_to_night()
+        dic = {'زندانبان': '', 'مافیا': 'mari', 'دکتر': 'mari', 'جراح': 'ali', 'کارآگاه': 'zari', 'دندان پزشک': ''}
+        self.set_game_aim(dic)
+        self.test_night_to_day()
+
+        # self.test_day_to_night()
+        # dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
+        # self.set_game_aim(dic)
+        # self.test_night_to_day()

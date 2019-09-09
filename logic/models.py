@@ -27,6 +27,7 @@ class BuffType(Enum):
     Kill = 'kill'
     Save = 'save'
     NotChange = 'در امان'
+    Silent = 'سکوت'
 
     @classmethod
     def choices(cls):
@@ -51,6 +52,7 @@ class AbilityEnum(Enum):
     can_ask = 'پرسش نقش'
     can_kil = 'کشتن فرد'
     can_jail = 'زندانی کردن'
+    can_silence = 'ساکت کردن'
 
     @classmethod
     def choices(cls):
@@ -68,6 +70,9 @@ class RoleEnum(Enum):
     detective = 'کارآگاه'
     mafia = 'مافیا'
     jailer = 'زندانبان'
+    dentist = 'دندان پزشک'
+    surgeon = 'جراح'
+    mayor = 'شهردار'
 
     @classmethod
     def choices(cls):
@@ -95,7 +100,6 @@ class Role(models.Model):
     abilities = models.ManyToManyField(Ability, blank=True)
     team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None)
     limit = models.IntegerField(default=100000, blank=True, null=True)
-
 
     def __str__(self):
         return self.name
