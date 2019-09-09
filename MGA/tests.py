@@ -4,7 +4,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from MGA.models import User, Event
-from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum, TeamEnum, Player, Game
+from logic.models import Role, Buff, Duration, BuffType, RoleEnum, Ability, AbilityEnum, TeamEnum, Player, Game, \
+    WakeUpEnum
 from mafiaGodAssistant import settings
 
 
@@ -227,7 +228,8 @@ class Tests(APITestCase):
         kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=3, announce=True,
                                    function_name='kill')
         save = Buff.objects.create(duration=Duration.H12, type=BuffType.Save, priority=3, announce=False)
-        not_change = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=True)
+        jailBuff = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange_announce, priority=1, announce=True)
+        aman=Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=False)
         silent = Buff.objects.create(duration=Duration.H24, type=BuffType.Silent, priority=1, announce=True)
         silent.save()
         kill.neutralizer.add(save)
@@ -242,17 +244,21 @@ class Tests(APITestCase):
         saveAbility.save()
 
         jailAbility = Ability.objects.create(name=AbilityEnum.can_jail)
-        jailAbility.buffs.add(not_change)
+        jailAbility.buffs.add(jailBuff)
         saveAbility.save()
+
+        heroAbility = Ability.objects.create(name=AbilityEnum.can_protect)
+        heroAbility.buffs.add(aman)
+        heroAbility.save()
 
         silentAbility = Ability.objects.create(name=AbilityEnum.can_silence)
         silentAbility.buffs.add(silent)
         saveAbility.save()
 
-        Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen).save()
-        doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen)
-        detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen)
-        mafia = Role.objects.create(name=RoleEnum.mafia, team=TeamEnum.mafia)
+        Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night).save()
+        doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
+        detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
+        mafia = Role.objects.create(name=RoleEnum.mafia, team=TeamEnum.mafia, wake_up=WakeUpEnum.every_night)
         doctor.abilities.add(Ability.objects.get(id=3))
         detective.abilities.add(Ability.objects.get(id=1))
         mafia.abilities.add(Ability.objects.get(id=2))
@@ -260,17 +266,25 @@ class Tests(APITestCase):
         detective.save()
         mafia.save()
 
-        jailer = Role.objects.create(name=RoleEnum.jailer, team=TeamEnum.citizen, limit=2)
+        jailer = Role.objects.create(name=RoleEnum.jailer, team=TeamEnum.citizen, limit=2,
+                                     wake_up=WakeUpEnum.every_night)
         jailer.abilities.add(jailAbility)
         jailer.save()
 
-        dentist = Role.objects.create(name=RoleEnum.dentist, team=TeamEnum.citizen, limit=2)
+        dentist = Role.objects.create(name=RoleEnum.dentist, team=TeamEnum.citizen, limit=2,
+                                      wake_up=WakeUpEnum.every_night)
         dentist.abilities.add(silentAbility)
         dentist.save()
 
-        sergeon = Role.objects.create(name=RoleEnum.surgeon, team=TeamEnum.mafia, limit=2)
+        sergeon = Role.objects.create(name=RoleEnum.surgeon, team=TeamEnum.mafia,
+                                      wake_up=WakeUpEnum.every_night)
         sergeon.abilities.add(saveAbility)
         sergeon.save()
+
+        hero = Role.objects.create(name=RoleEnum.hero, team=TeamEnum.citizen,
+                                   wake_up=WakeUpEnum.every_one_night)
+        hero.abilities.add(heroAbility)
+        hero.save()
 
         self.assertEqual(kill.neutralizer.count(), 1)
 
@@ -318,7 +332,7 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
 
-    def test_eight(self):
+    def test_nine(self):
         self.test_init()
         self.test_add_event()
         self.fill_member('zari', 2)
@@ -329,11 +343,12 @@ class Tests(APITestCase):
         self.fill_member('ali', 7)
         self.fill_member('bari', 8)
         self.fill_member('zahra', 9)
+        self.fill_member('karim', 10)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
-        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1,7:1}
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
@@ -347,14 +362,28 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.test_day_to_night()
-        dic = {'زندانبان': 'kari', 'مافیا': 'zari', 'دکتر': 'mari', 'جراح': 'ali', 'کارآگاه': 'zari',
+
+        dic = {'زندانبان': 'kari', 'مافیا': 'zari', 'دکتر': 'mari', 'جراح': 'ali',
                'دندان پزشک': 'bari'}
         self.set_game_aim(dic)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'کارآگاه', 'player_username': 'mari'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.test_night_to_day()
 
         self.test_day_to_night()
-        dic = {'زندانبان': '', 'مافیا': 'mari', 'دکتر': 'mari', 'جراح': 'ali', 'کارآگاه': 'zari', 'دندان پزشک': ''}
+        dic = {'زندانبان': '', 'قهرمان': 'ali', 'مافیا': 'mari', 'دکتر': 'mari', 'جراح': 'ali',
+               'دندان پزشک': ''}
         self.set_game_aim(dic)
+
+        url = reverse('logic:ask_god')
+        data = {'game_id': 1, 'role_name': 'کارآگاه', 'player_username': 'zahra'}
+        response = self.client.post(url, data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.test_night_to_day()
 
         # self.test_day_to_night()

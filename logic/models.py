@@ -6,7 +6,21 @@ from MGA.models import User, Event
 
 
 class WakeUpEnum(Enum):
-    each_night = 100000
+    every_night = 0
+    every_one_night = 1
+    every_two_night = 2
+    every_three_night = 3
+
+    @classmethod
+    def choices(cls):
+        return tuple((i.name, i.value) for i in cls)
+
+    @classmethod
+    def get_wakeUpEnum_by_wake_up_name(cls, wake_up):
+        for i in cls:
+            if str(i) == wake_up:
+                return WakeUpEnum(i.value)
+        return None
 
 
 class Duration(Enum):
@@ -30,8 +44,9 @@ class Duration(Enum):
 class BuffType(Enum):
     Kill = 'kill'
     Save = 'save'
-    NotChange = 'در امان'
+    NotChange_announce = 'در امان(خارج از بازی)'
     Silent = 'سکوت'
+    NotChange = 'در امان(داخل از بازی)'
 
     @classmethod
     def choices(cls):
@@ -57,6 +72,7 @@ class AbilityEnum(Enum):
     can_kil = 'کشتن فرد'
     can_jail = 'زندانی کردن'
     can_silence = 'ساکت کردن'
+    can_protect = 'محافظت کردن'
 
     @classmethod
     def choices(cls):
@@ -76,6 +92,7 @@ class RoleEnum(Enum):
     jailer = 'زندانبان'
     dentist = 'دندان پزشک'
     surgeon = 'جراح'
+    hero = 'قهرمان'
     mayor = 'شهردار'
 
     @classmethod
@@ -104,6 +121,7 @@ class Role(models.Model):
     abilities = models.ManyToManyField(Ability, blank=True)
     team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None)
     limit = models.IntegerField(default=100000, blank=True, null=True)
+    wake_up = models.CharField(max_length=250, default=0, blank=True, null=True, choices=WakeUpEnum.choices())
 
     def __str__(self):
         return self.name
@@ -121,6 +139,7 @@ class Player(models.Model):
     buffs = models.ManyToManyField(PlayerBuff, blank=True)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
     limit = models.IntegerField(default=100000, blank=True, null=True)
+    wake_up_limit = models.IntegerField(default=0, blank=True, null=True)
 
     def __str__(self):
         return self.user.username

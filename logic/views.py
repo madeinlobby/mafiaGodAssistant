@@ -1,13 +1,29 @@
-import itertools
-
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from MGA.models import Event, User
 from logic import buffLibrary
-from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff, TeamEnum, BuffType
+from logic.models import Role, Game, Player, Duration, RoleEnum, Buff, PlayerBuff, TeamEnum, BuffType, WakeUpEnum
 from logic.serializers import RoleSerializer, GameSerializer, PlayerSerializer
+
+"""
+playerbuff va player dastiye
+"""
+
+
+def get_players_except_one(request):
+    game_id = request.data.get('game_id')
+    game = Game.objects.get(id=game_id)
+    role_name = request.data.get('role_name')
+    players = game.player_set
+    return_players = list()
+    for player in players:
+        if not player.role.name == role_name:
+            return_players.append(player)
+
+    serializer = PlayerSerializer(return_players, many=True)
+    return Response(serializer.data)
 
 
 @api_view(['GET'])
@@ -32,7 +48,8 @@ def random_roles(role_dict, game_id):
         for (member, role) in zip(members, role_list):
             role_obj = Role.objects.get(id=role)
             Player.objects.create(status=True, user=member, role=role_obj, game=game,
-                                  limit=role_obj.limit).save()
+                                  limit=role_obj.limit, wake_up_limit=WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
+                    role_obj.wake_up).value).save()
         game.save()
         dic = dict()
         for player in game.player_set.all():
@@ -170,16 +187,25 @@ def order_awake(game):  # todo
     dictionary.update({str(RoleEnum.mafia): True})
 
     for player in players.all():
+        if player.wake_up_limit == 0:
+            player.wake_up_limit = WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
+                player.role.wake_up).value
+            player.save()
+            role_awake(player, dictionary, RoleEnum.hero)
 
-        role_awake(player, dictionary, RoleEnum.doctor)
+            role_awake(player, dictionary, RoleEnum.doctor)
 
-        role_awake(player, dictionary, RoleEnum.detective)
+            role_awake(player, dictionary, RoleEnum.detective)
 
-        limited_role_awake(player, dictionary, RoleEnum.jailer)
+            limited_role_awake(player, dictionary, RoleEnum.jailer)
 
-        limited_role_awake(player, dictionary, RoleEnum.surgeon)
+            limited_role_awake(player, dictionary, RoleEnum.surgeon)
 
-        limited_role_awake(player, dictionary, RoleEnum.dentist)
+            limited_role_awake(player, dictionary, RoleEnum.dentist)
+
+        else:
+            player.wake_up_limit -= 1
+            player.save()
 
     return Response(dictionary)
 
@@ -189,12 +215,12 @@ def alive_player(request):
     game = Game.objects.get(id=game_id)
     players = game.player_set
 
-    alivePlayers = []
+    alive_players = []
     for p in players:
         if p.stauts:
-            alivePlayers.append(p.user.username)
+            alive_players.append(p.user.username)
 
-    serializer = PlayerSerializer(alivePlayers, many=True)
+    serializer = PlayerSerializer(alive_players, many=True)
 
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -202,7 +228,7 @@ def alive_player(request):
 def can_put_buff(player):
     for ability in player.role.abilities.all():
         for buff in ability.buffs.all():
-            if str(buff.type) == str(BuffType.NotChange):
+            if str(buff.type) == str(BuffType.NotChange_announce):
                 return False
     return True
 
@@ -245,11 +271,29 @@ def set_night_aims(request):
             user = User.objects.get(username=aims_dic[aim])
             player = Player.objects.get(user=user)
             decrease_limit(role, player.game)
-            if role.name == str(RoleEnum.detective):
-                response_dic.update({role.name: player.role.team})
+            # if role.name == str(RoleEnum.detective):
+            #     response_dic.update({role.name: player.role.team})
             make_buff(role, player)
 
     return Response(response_dic)
+
+
+@api_view(['POST','GET'])
+def ask_god(request):
+    game_id = request.data.get('game_id')
+    role = request.data.get('role_name')
+    player_username = request.data.get('player_username')
+    game = Game.objects.get(id=game_id)
+    players = game.player_set
+    asked_player = None
+    for player in players.all():
+        if player.user.username == player_username:
+            asked_player = player
+            break
+    if not asked_player:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    if role == str(RoleEnum.detective.value):
+        return Response(asked_player.role.team, status=status.HTTP_200_OK)
 
 
 def end_game(game):
