@@ -226,7 +226,7 @@ def order_awake(game):  # todo
         else:
             player.wake_up_limit -= 1
             player.save()
-=======
+
     dictionary.update({RoleEnum.mafia: True})
 
     doctors = []
@@ -240,7 +240,7 @@ def order_awake(game):  # todo
         if Role.name == RoleEnum.detective:
           #  dictionary.update({RoleEnum.detective: p.stauts})
            detectives.append(p)
->>>>>>> Stashed changes
+
 
     return Response(dictionary)
 
@@ -317,7 +317,7 @@ def set_night_aims(request):
     response_dic = dict()
     aims_dic = request.data.get('aim_dic')
     for aim in aims_dic:
-<<<<<<< Updated upstream
+
         role = Role.objects.get(name=RoleEnum(aim))
         if aims_dic[aim] != '':
             user = User.objects.get(username=aims_dic[aim])
@@ -389,7 +389,7 @@ def end_game(game):
 @api_view(['POST', 'GET'])
 def voting(request):  # TODO for elnaz
     return Response()
-=======
+
         make_buff(Buff.objects.get(name=aim), aims_dic[aim])
 
 
@@ -404,4 +404,4 @@ def to_die(player):        # for offline mode voting
 
 
 
->>>>>>> Stashed changes
+
