@@ -599,6 +599,7 @@ class Tests(APITestCase):
 
     def test_check_night(self):
         self.test_init()
+<<<<<<< Updated upstream
         self.test_add_event()
         self.fill_member('zari', 2)
         self.fill_member('kari', 3)
@@ -750,3 +751,9 @@ class Tests(APITestCase):
         dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
         self.set_game_aim(dic)
         self.test_night_to_day()
+=======
+        self.test_set_game_role_true()
+
+
+
+>>>>>>> Stashed changes

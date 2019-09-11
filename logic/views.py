@@ -242,6 +242,20 @@ def order_awake(game):  # todo
             player.wake_up_limit -= 1
             player.save()
 
+    # dictionary.update({RoleEnum.mafia: True})
+    #
+    # doctors = []
+    # detectives = []
+    #
+    # for p in players:
+    #     if Role.name == RoleEnum.doctor:
+    #        # dictionary.update({RoleEnum.doctor: p.stauts})
+    #        doctors.append(p)
+    # else:
+    #     if Role.name == RoleEnum.detective:
+    #       #  dictionary.update({RoleEnum.detective: p.stauts})
+    #        detectives.append(p)
+
     return Response(dictionary)
 
 
@@ -463,4 +477,7 @@ def get_alive_boss(request):
         return Response({mistress.role.name: mistress.status}, status=status.HTTP_200_OK)
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
+
+def to_die(player):        # for offline mode voting
+    player.status = False
 
