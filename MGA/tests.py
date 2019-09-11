@@ -225,18 +225,18 @@ class Tests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_init(self):
-        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=1, announce=True,
+        kill = Buff.objects.create(duration=Duration.always, type=BuffType.Kill, priority=6, announce=True,
                                    function_name='kill')
-        save = Buff.objects.create(duration=Duration.H24, type=BuffType.Save, priority=1, announce=False)
-        save_at_night = Buff.objects.create(duration=Duration.always, type=BuffType.Save_at_night, priority=3,
+        save = Buff.objects.create(duration=Duration.H24, type=BuffType.Save, priority=7, announce=False)
+        save_at_night = Buff.objects.create(duration=Duration.always, type=BuffType.Save_at_night, priority=2,
                                             announce=False)
         save_at_night.save()
-        one_shot_alive = Buff.objects.create(duration=Duration.always, type=BuffType.One_shot_alive, priority=4,
+        one_shot_alive = Buff.objects.create(duration=Duration.always, type=BuffType.One_shot_alive, priority=8,
                                              announce=False)
         jailBuff = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange_announce, priority=1,
                                        announce=True)
         aman = Buff.objects.create(duration=Duration.H24, type=BuffType.NotChange, priority=1, announce=False)
-        silent = Buff.objects.create(duration=Duration.H24, type=BuffType.Silent, priority=1, announce=True)
+        silent = Buff.objects.create(duration=Duration.H24, type=BuffType.Silent, priority=13, announce=True)
         silent.save()
         kill.neutralizer.add(save)
         kill.neutralizer.add(one_shot_alive)
@@ -246,19 +246,48 @@ class Tests(APITestCase):
         one_shot_alive.save()
         kill.save()
 
-        send_role = Buff.objects.create(duration=Duration.always, type=BuffType.SendRole, priority=1, announce=False,
+        reverse_dead = Buff.objects.create(duration=Duration.always, type=BuffType.Reverse_kill, priority=5,
+                                           announce=False)
+        reverse_dead.save()
+
+        one_shot = Buff.objects.create(duration=Duration.always, type=BuffType.One_shot, priority=6,
+                                       announce=True)
+        one_shot.save()
+
+        reverse_simin = Buff.objects.create(duration=Duration.H24, type=BuffType.Reverse_inquiry_simin, priority=11,
+                                            announce=False)
+        reverse_simin.save()
+
+        send_role = Buff.objects.create(duration=Duration.always, type=BuffType.SendRole, priority=3, announce=False,
                                         function_name='send_role')
         send_role.save()
 
-        make_citizen = Buff.objects.create(duration=Duration.always, type=BuffType.Make_citizen, priority=1,
+        make_citizen = Buff.objects.create(duration=Duration.always, type=BuffType.Make_citizen, priority=4,
                                            announce=True,
                                            function_name='make_citizen')
         make_citizen.save()
 
-        make_alive = Buff.objects.create(duration=Duration.H12, type=BuffType.Make_alive, priority=1,
+        make_alive = Buff.objects.create(duration=Duration.H12, type=BuffType.Make_alive, priority=9,
                                          announce=True,
                                          function_name='make_alive')
         make_alive.save()
+
+        jalab_buff = Buff.objects.create(duration=Duration.H24, type=BuffType.Can_not_vote, priority=12,
+                                         announce=True)
+        jalab_buff.save()
+
+        not_know_role_buff = Buff.objects.create(duration=Duration.always, type=BuffType.can_not_know_role, priority=10,
+                                                 announce=False)
+        not_know_role_buff.save()
+
+        reverse_detective_buff = Buff.objects.create(duration=Duration.always, type=BuffType.Reverse_inquiry_detective,
+                                                     priority=11,
+                                                     announce=False)
+        reverse_detective_buff.save()
+
+        make_mafia_buff = Buff.objects.create(duration=Duration.always, type=BuffType.Make_simple_mafia,
+                                              priority=1, announce=False)
+        make_mafia_buff.save()
 
         can_ask = Ability.objects.create(name=AbilityEnum.can_ask)
         can_ask.save()
@@ -277,16 +306,33 @@ class Tests(APITestCase):
         heroAbility.buffs.add(aman)
         heroAbility.save()
 
+        reverse_kill_Ability = Ability.objects.create(name=AbilityEnum.reverse_kill)
+        reverse_kill_Ability.buffs.add(reverse_dead)
+        reverse_kill_Ability.save()
+
         silentAbility = Ability.objects.create(name=AbilityEnum.can_silence)
         silentAbility.buffs.add(silent)
         saveAbility.save()
 
-        revers_inquiry = Ability.objects.create(name=AbilityEnum.reverse_inquiry)
+        can_not_know_role_Ability = Ability.objects.create(name=AbilityEnum.can_not_know_role)
+        can_not_know_role_Ability.buffs.add(not_know_role_buff)
+        can_not_know_role_Ability.save()
+
+        revers_inquiry = Ability.objects.create(name=AbilityEnum.reverse_inquiry_detective)
+        revers_inquiry.buffs.add(reverse_detective_buff)
         revers_inquiry.save()
 
         send_role_abiity = Ability.objects.create(name=AbilityEnum.can_send_role)
         send_role_abiity.buffs.add(send_role)
         send_role_abiity.save()
+
+        jalab_abiity = Ability.objects.create(name=AbilityEnum.can_not_vote)
+        jalab_abiity.buffs.add(jalab_buff)
+        jalab_abiity.save()
+
+        one_shot_ability = Ability.objects.create(name=AbilityEnum.one_shot)
+        one_shot_ability.buffs.add(one_shot)
+        one_shot_ability.save()
 
         save_at_night_ability = Ability.objects.create(name=AbilityEnum.can_save_at_night)
         save_at_night_ability.buffs.add(save_at_night)
@@ -300,11 +346,19 @@ class Tests(APITestCase):
         make_alive_ability.buffs.add(make_alive)
         make_alive_ability.save()
 
+        make_mafia_ability = Ability.objects.create(name=AbilityEnum.make_simple_mafia)
+        make_mafia_ability.buffs.add(make_mafia_buff)
+        make_mafia_ability.save()
+
         one_shot_ability = Ability.objects.create(name=AbilityEnum.one_shot_alive)
         one_shot_ability.buffs.add(one_shot_alive)
         one_shot_ability.save()
 
-        Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night).save()
+        reverse_simin_ability = Ability.objects.create(name=AbilityEnum.reverse_inquiry_simin)
+        reverse_simin_ability.buffs.add(reverse_simin)
+        reverse_simin_ability.save()
+
+        Role.objects.create(name=RoleEnum.citizen, team=TeamEnum.citizen, wake_up=WakeUpEnum.never).save()
         doctor = Role.objects.create(name=RoleEnum.doctor, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
         detective = Role.objects.create(name=RoleEnum.detective, team=TeamEnum.citizen, wake_up=WakeUpEnum.every_night)
         mafia = Role.objects.create(name=RoleEnum.mafia, team=TeamEnum.mafia, wake_up=WakeUpEnum.every_night)
@@ -339,6 +393,7 @@ class Tests(APITestCase):
                                       wake_up=WakeUpEnum.every_three_night)
         wolfman.abilities.add(heroAbility)
         wolfman.abilities.add(save_at_night_ability)
+        wolfman.own_buffs.add(reverse_dead)
         wolfman.save()
 
         simin = Role.objects.create(name=RoleEnum.simin, team=TeamEnum.citizen,
@@ -359,13 +414,54 @@ class Tests(APITestCase):
 
         insincere = Role.objects.create(name=RoleEnum.insincere, team=TeamEnum.mafia,
                                         wake_up=WakeUpEnum.every_night)
-        insincere.abilities.add(revers_inquiry)
+        insincere.own_buffs.add(revers_inquiry)
         insincere.save()
 
         jesus = Role.objects.create(name=RoleEnum.jesus, team=TeamEnum.citizen,
                                     wake_up=WakeUpEnum.every_five_night)
         jesus.abilities.add(make_alive_ability)
         jesus.save()
+
+        mafia_boss = Role.objects.create(name=RoleEnum.don, team=TeamEnum.mafia,
+                                         wake_up=WakeUpEnum.every_night)
+        mafia_boss.abilities.add(revers_inquiry)
+        mafia_boss.save()
+
+        half_breed = Role.objects.create(name=RoleEnum.half_breed, team=TeamEnum.werewolf,
+                                         wake_up=WakeUpEnum.every_night)
+        half_breed.abilities.add(reverse_simin_ability)
+        half_breed.own_buffs.add(reverse_dead)
+        half_breed.save()
+
+        jalab = Role.objects.create(name=RoleEnum.snide, team=TeamEnum.mafia,
+                                    wake_up=WakeUpEnum.every_night, limit=1)
+        jalab.abilities.add(jalab_abiity)
+        jalab.save()
+
+        jani = Role.objects.create(name=RoleEnum.criminal, team=TeamEnum.criminals,
+                                   wake_up=WakeUpEnum.every_two_night)
+        jani.abilities.add(killAbility)
+        jani.save()
+
+        chalkon = Role.objects.create(name=RoleEnum.burial, team=TeamEnum.mafia,
+                                      wake_up=WakeUpEnum.every_night, limit=2)
+        chalkon.abilities.add(can_not_know_role_Ability)
+        chalkon.save()
+
+        charlatan = Role.objects.create(name=RoleEnum.charlatan, team=TeamEnum.mafia,
+                                        wake_up=WakeUpEnum.every_night)
+        charlatan.abilities.add(revers_inquiry)
+        charlatan.save()
+
+        killer = Role.objects.create(name=RoleEnum.killer, team=TeamEnum.mafia
+                                     , wake_up=WakeUpEnum.never)
+        killer.abilities.add(killAbility)
+        killer.save()
+
+        ravankav = Role.objects.create(name=RoleEnum.psychoanalyst, team=TeamEnum.mafia
+                                       , wake_up=WakeUpEnum.every_night, limit=1)
+        ravankav.abilities.add(make_mafia_ability)
+        ravankav.save()
 
         self.assertEqual(kill.neutralizer.count(), 2)
 
@@ -413,7 +509,7 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
 
-    def test_fifteen(self):
+    def test_sixteen(self):
         self.test_init()
         self.test_add_event()
         self.fill_member('zari', 2)
@@ -431,12 +527,13 @@ class Tests(APITestCase):
         self.fill_member('rahim', 14)
         self.fill_member('javad', 15)
         self.fill_member('haniye', 16)
+        self.fill_member('we', 17)
 
         url = reverse('logic:create_game')
         data = {'event_id': 1}
         self.client.post(url, data, format='json')
 
-        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1}
+        dic = {1: 1, 2: 1, 3: 1, 4: 2, 5: 1, 6: 1, 7: 1, 8: 1, 9: 1, 10: 1, 11: 1, 12: 1, 13: 1, 14: 1, 15: 1}
         url = reverse('logic:set_game_role')
         data = {'game_id': 1, 'role_dict': dic}
         response = self.client.post(url, data, format='json')
