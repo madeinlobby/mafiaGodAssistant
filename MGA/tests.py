@@ -290,7 +290,7 @@ class Tests(APITestCase):
         make_mafia_buff.save()
 
         mirror_buff = Buff.objects.create(duration=Duration.H24, type=BuffType.mirror,
-                                              priority=0.5, announce=False)
+                                          priority=0.5, announce=False)
         mirror_buff.save()
 
         can_ask = Ability.objects.create(name=AbilityEnum.can_ask)
@@ -472,7 +472,7 @@ class Tests(APITestCase):
         ravankav.save()
 
         night_slept = Role.objects.create(name=RoleEnum.night_slept, team=TeamEnum.mafia
-                                       , wake_up=WakeUpEnum.every_night)
+                                          , wake_up=WakeUpEnum.every_night)
         night_slept.abilities.add(mirror_Ability)
         night_slept.save()
 
@@ -764,6 +764,4 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
         self.test_set_game_role_true()
-
-
 
