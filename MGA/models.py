@@ -5,7 +5,7 @@ from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from pushy.models import Device
+# from pushy.models import Device
 
 
 class Token(models.Model):
@@ -42,8 +42,8 @@ class User(AbstractUser):
     city = models.CharField(max_length=200, blank=True, null=True)
     confirm = models.BooleanField(default=False, blank=True, null=True)
     rate = models.OneToOneField(Rate, related_name='u_rate', on_delete=models.CASCADE, blank=True, null=True)
-    user_device = models.OneToOneField(Device, on_delete=models.CASCADE, default=None, blank=True, null=True,
-                                       related_name='user_device')
+    # user_device = models.OneToOneField(Device, on_delete=models.CASCADE, default=None, blank=True, null=True,
+    #                                    related_name='user_device')
 
     objects = UserManager()
 

@@ -61,6 +61,7 @@ class BuffType(Enum):
     Reverse_kill = 'کشتن برعکس'
     One_shot = 'یک شات'
     Make_simple_mafia = 'تبدیل به مافیای ساده'
+    mirror = 'آینه ای'
 
     @classmethod
     def choices(cls):
@@ -100,6 +101,7 @@ class AbilityEnum(Enum):
     reverse_kill = 'کشتن برعکس'
     one_shot = 'یک شات'
     make_simple_mafia = 'تبدیل به مافیای ساده'
+    mirror = 'آینه ای'
 
     @classmethod
     def choices(cls):
@@ -142,6 +144,7 @@ class RoleEnum(Enum):
     mayor = 'شهردار'
     save_angel = 'فرشته نجات'
     psychoanalyst = 'روانکاو'
+    night_slept = 'شب خسب'
     killer = 'کشنده'  # it is not a role :)
 
     @classmethod
@@ -170,7 +173,7 @@ class TeamEnum(Enum):
 class Role(models.Model):
     name = models.CharField(max_length=200, choices=RoleEnum.choices())
     abilities = models.ManyToManyField(Ability, blank=True)
-    team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None)
+    team = models.CharField(max_length=50, choices=TeamEnum.choices(), default=None, null=True, blank=True)
     limit = models.IntegerField(default=100000, blank=True, null=True)
     wake_up = models.CharField(max_length=250, default=0, blank=True, null=True, choices=WakeUpEnum.choices())
     own_buffs = models.ManyToManyField(Buff, blank=True)

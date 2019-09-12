@@ -204,17 +204,10 @@ def order_awake(game):  # todo
             player.wake_up_limit = WakeUpEnum.get_wakeUpEnum_by_wake_up_name(
                 player.role.wake_up).value
             player.save()
+
+            role_awake(player, dictionary, RoleEnum.night_slept)
+
             limited_role_awake(player, dictionary, RoleEnum.psychoanalyst)
-
-            limited_role_awake(player, dictionary, RoleEnum.burial)
-
-            limited_role_awake(player, dictionary, RoleEnum.grave_digger)
-
-            limited_role_awake(player, dictionary, RoleEnum.snide)
-
-            role_awake(player, dictionary, RoleEnum.charlatan)
-
-            role_awake(player, dictionary, RoleEnum.jesus)
 
             role_awake(player, dictionary, RoleEnum.criminal)
 
@@ -237,6 +230,16 @@ def order_awake(game):  # todo
             limited_role_awake(player, dictionary, RoleEnum.surgeon)
 
             limited_role_awake(player, dictionary, RoleEnum.dentist)
+
+            role_awake(player, dictionary, RoleEnum.jesus)
+
+            role_awake(player, dictionary, RoleEnum.charlatan)
+
+            limited_role_awake(player, dictionary, RoleEnum.burial)
+
+            limited_role_awake(player, dictionary, RoleEnum.grave_digger)
+
+            limited_role_awake(player, dictionary, RoleEnum.snide)
 
         else:
             player.wake_up_limit -= 1
@@ -278,8 +281,10 @@ def can_put_buff(player):
     for ability in player.role.abilities.all():
         for buff in ability.buffs.all():
             if str(buff.type) == str(BuffType.NotChange_announce):
-                return False
-    return True
+                return 1
+            if str(buff.type) == str(BuffType.mirror):
+                return -1
+    return 0
 
 
 def make_player_buff(buff, role_name):
@@ -304,20 +309,30 @@ def check_neu_on_put_buff(buff, player):
     return True
 
 
-def make_buff(role, opponent):
-    if can_put_buff(opponent):
+def make_buff(attacker, role, opponent):
+    buff_result = can_put_buff(opponent)
+    if buff_result != 1:
         abilities = role.abilities
 
         for ability in abilities.all():
             buffs = ability.buffs
             for buff in buffs.all():
-                if check_neu_on_put_buff(buff, opponent):
-                    player_buff = make_player_buff(buff, role.name)
-                    for n in buff.neutralizer.all():
-                        player_buff.neutralizer.add(n)
-                    player_buff.save()
-                    opponent.buffs.add(player_buff)
-                    opponent.save()
+                if buff_result == 0:
+                    if check_neu_on_put_buff(buff, opponent):
+                        player_buff = make_player_buff(buff, role.name)
+                        for n in buff.neutralizer.all():
+                            player_buff.neutralizer.add(n)
+                        player_buff.save()
+                        opponent.buffs.add(player_buff)
+                        opponent.save()
+                if buff_result == -1:
+                    if check_neu_on_put_buff(buff, attacker):
+                        player_buff = make_player_buff(buff, role.name)
+                        for n in buff.neutralizer.all():
+                            player_buff.neutralizer.add(n)
+                        player_buff.save()
+                        attacker.buffs.add(player_buff)
+                        attacker.save()
 
 
 def decrease_limit(role, game):
@@ -326,7 +341,8 @@ def decrease_limit(role, game):
         if str(player.role.name) == str(role.name):
             player.limit -= 1
             player.save()
-            return
+            return player
+    return None
 
 
 @api_view(['POST'])
@@ -338,10 +354,10 @@ def set_night_aims(request):
         if aims_dic[aim] != '':
             user = User.objects.get(username=aims_dic[aim])
             player = Player.objects.get(user=user)
-            decrease_limit(role, player.game)
+            attacker = decrease_limit(role, player.game)
             if aim == RoleEnum.charlatan.value and player.role.name == RoleEnum.spy.value:
-                make_buff(Role.objects.get(name=RoleEnum.killer.value), player)
-            make_buff(role, player)
+                make_buff(attacker, Role.objects.get(name=RoleEnum.killer.value), player)
+            make_buff(attacker, role, player)
 
     return Response(response_dic)
 
@@ -478,6 +494,15 @@ def get_alive_boss(request):
     return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
-def to_die(player):        # for offline mode voting
+def to_die(player):  # for offline mode voting
     player.status = False
 
+
+@api_view(['POST', 'GET'])
+def disable_vote(request):
+    user = request.user
+    player = Player.objects.get(user=user)
+    for buff in player.buffs:
+        if buff.type == str(BuffType.Can_not_vote):
+            return False
+    return True

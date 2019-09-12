@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.utils.timezone import now
-from pushy.utils import send_push_notification
+# from pushy.utils import send_push_notification
 from rest_framework import status, generics, mixins
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -41,8 +41,8 @@ def send_to_group(request):
                                          time=now())
         for member in group.members.all():
             message.receiver.add(member)
-            send_push_notification('YOUR_TITLE', MessageSerializer(message).data,
-                                   device=member.user_device, store=False)
+            # send_push_notification('YOUR_TITLE', MessageSerializer(message).data,
+            #                        device=member.user_device, store=False)
         message.save()
 
         serializer = MessageSerializer(message)
@@ -76,8 +76,8 @@ def create_reply(request):
                                      time=now(), message=message)
         reply.receiver.add(receiver)
         reply.save()
-        send_push_notification('YOUR_TITLE', MessageSerializer(reply).data,
-                               device=receiver.user_device, store=False)
+        # send_push_notification('YOUR_TITLE', MessageSerializer(reply).data,
+        #                        device=receiver.user_device, store=False)
 
         serializer = ReplySerializer(reply)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

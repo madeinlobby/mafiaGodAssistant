@@ -289,6 +289,10 @@ class Tests(APITestCase):
                                               priority=1, announce=False)
         make_mafia_buff.save()
 
+        mirror_buff = Buff.objects.create(duration=Duration.H24, type=BuffType.mirror,
+                                              priority=0.5, announce=False)
+        mirror_buff.save()
+
         can_ask = Ability.objects.create(name=AbilityEnum.can_ask)
         can_ask.save()
         killAbility = Ability.objects.create(name=AbilityEnum.can_kil)
@@ -317,6 +321,10 @@ class Tests(APITestCase):
         can_not_know_role_Ability = Ability.objects.create(name=AbilityEnum.can_not_know_role)
         can_not_know_role_Ability.buffs.add(not_know_role_buff)
         can_not_know_role_Ability.save()
+
+        mirror_Ability = Ability.objects.create(name=AbilityEnum.mirror)
+        mirror_Ability.buffs.add(mirror_buff)
+        mirror_Ability.save()
 
         revers_inquiry = Ability.objects.create(name=AbilityEnum.reverse_inquiry_detective)
         revers_inquiry.buffs.add(reverse_detective_buff)
@@ -463,6 +471,11 @@ class Tests(APITestCase):
         ravankav.abilities.add(make_mafia_ability)
         ravankav.save()
 
+        night_slept = Role.objects.create(name=RoleEnum.night_slept, team=TeamEnum.mafia
+                                       , wake_up=WakeUpEnum.every_night)
+        night_slept.abilities.add(mirror_Ability)
+        night_slept.save()
+
         self.assertEqual(kill.neutralizer.count(), 2)
 
     def test_day_to_night(self):
@@ -599,7 +612,6 @@ class Tests(APITestCase):
 
     def test_check_night(self):
         self.test_init()
-<<<<<<< Updated upstream
         self.test_add_event()
         self.fill_member('zari', 2)
         self.fill_member('kari', 3)
@@ -751,9 +763,7 @@ class Tests(APITestCase):
         dic = {'مافیا': 'mari', 'دکتر': 'mari', 'کارآگاه': 'zari', 'زندانبان': '', 'دندان پزشک': ''}
         self.set_game_aim(dic)
         self.test_night_to_day()
-=======
         self.test_set_game_role_true()
 
 
 
->>>>>>> Stashed changes
