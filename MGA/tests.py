@@ -254,6 +254,10 @@ class Tests(APITestCase):
                                        announce=True)
         one_shot.save()
 
+        can_not_use = Buff.objects.create(duration=Duration.H24, type=BuffType.can_not_use_ability, priority=1,
+                                          announce=False)
+        can_not_use.save()
+
         reverse_simin = Buff.objects.create(duration=Duration.H24, type=BuffType.Reverse_inquiry_simin, priority=11,
                                             announce=False)
         reverse_simin.save()
@@ -275,6 +279,10 @@ class Tests(APITestCase):
         jalab_buff = Buff.objects.create(duration=Duration.H24, type=BuffType.Can_not_vote, priority=12,
                                          announce=True)
         jalab_buff.save()
+
+        fail_vote = Buff.objects.create(duration=Duration.H24, type=BuffType.can_fail_voting, priority=12,
+                                        announce=True)
+        fail_vote.save()
 
         not_know_role_buff = Buff.objects.create(duration=Duration.always, type=BuffType.can_not_know_role, priority=10,
                                                  announce=False)
@@ -314,6 +322,10 @@ class Tests(APITestCase):
         reverse_kill_Ability.buffs.add(reverse_dead)
         reverse_kill_Ability.save()
 
+        can_not_useAbility = Ability.objects.create(name=AbilityEnum.can_not_use_ability)
+        can_not_useAbility.buffs.add(can_not_use)
+        can_not_useAbility.save()
+
         silentAbility = Ability.objects.create(name=AbilityEnum.can_silence)
         silentAbility.buffs.add(silent)
         saveAbility.save()
@@ -345,6 +357,10 @@ class Tests(APITestCase):
         save_at_night_ability = Ability.objects.create(name=AbilityEnum.can_save_at_night)
         save_at_night_ability.buffs.add(save_at_night)
         save_at_night_ability.save()
+
+        fail_vote_ability = Ability.objects.create(name=AbilityEnum.can_fail_voting)
+        fail_vote_ability.buffs.add(fail_vote)
+        fail_vote_ability.save()
 
         make_citizen_ability = Ability.objects.create(name=AbilityEnum.can_change_role_to_citizen)
         make_citizen_ability.buffs.add(make_citizen)
@@ -475,6 +491,25 @@ class Tests(APITestCase):
                                           , wake_up=WakeUpEnum.every_night)
         night_slept.abilities.add(mirror_Ability)
         night_slept.save()
+
+        jadogar = Role.objects.create(name=RoleEnum.magician, team=TeamEnum.citizen
+                                      , wake_up=WakeUpEnum.every_night, limit=2)
+        jadogar.abilities.add(can_not_useAbility)
+        jadogar.save()
+
+        mayor = Role.objects.create(name=RoleEnum.mayor, team=TeamEnum.citizen
+                                    , wake_up=WakeUpEnum.never, limit=1)
+        mayor.own_buffs.add(fail_vote)
+        mayor.save()
+
+        marshal = Role.objects.create(name=RoleEnum.mayor, team=TeamEnum.citizen
+                                      , wake_up=WakeUpEnum.every_night)
+        marshal.own_buffs.add(killAbility)
+        marshal.save()
+
+        judge = Role.objects.create(name=RoleEnum.judge, team=TeamEnum.citizen
+                                    , wake_up=WakeUpEnum.never)
+        judge.save()
 
         self.assertEqual(kill.neutralizer.count(), 2)
 
@@ -764,4 +799,3 @@ class Tests(APITestCase):
         self.set_game_aim(dic)
         self.test_night_to_day()
         self.test_set_game_role_true()
-

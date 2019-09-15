@@ -205,7 +205,11 @@ def order_awake(game):  # todo
                 player.role.wake_up).value
             player.save()
 
+            limited_role_awake(player, dictionary, RoleEnum.magician)
+
             role_awake(player, dictionary, RoleEnum.night_slept)
+
+            role_awake(player, dictionary, RoleEnum.marshal)
 
             limited_role_awake(player, dictionary, RoleEnum.psychoanalyst)
 
@@ -309,7 +313,17 @@ def check_neu_on_put_buff(buff, player):
     return True
 
 
+def can_attack(player):
+    for buff in player.buffs.all():
+        if buff.type == str(BuffType.can_not_use_ability.value):
+            return False
+    return True
+
+
 def make_buff(attacker, role, opponent):
+    can_use_ability = can_attack(attacker)
+    if not can_use_ability:
+        return
     buff_result = can_put_buff(opponent)
     if buff_result != 1:
         abilities = role.abilities
@@ -357,7 +371,18 @@ def set_night_aims(request):
             attacker = decrease_limit(role, player.game)
             if aim == RoleEnum.charlatan.value and player.role.name == RoleEnum.spy.value:
                 make_buff(attacker, Role.objects.get(name=RoleEnum.killer.value), player)
-            make_buff(attacker, role, player)
+            elif aim == RoleEnum.marshal.value:
+                if player.role.name == RoleEnum.criminal.value or player.role.team == str(TeamEnum.mafia):
+                    make_buff(attacker, Role.objects.get(name=RoleEnum.killer.value), player)
+                elif player.role.team == str(TeamEnum.citizen):
+                    make_buff(attacker, Role.objects.get(name=RoleEnum.killer.value), attacker)
+            elif aim == RoleEnum.magician.value and player.role.name == RoleEnum.night_slept.value:
+                make_buff(attacker, Role.objects.get(name=RoleEnum.killer.value), player)
+            elif aim == RoleEnum.night_slept.value and player.role.name == RoleEnum.magician.value:
+                make_buff(attacker, Role.objects.get(name=RoleEnum.killer.value), attacker)
+
+            else:
+                make_buff(attacker, role, player)
 
     return Response(response_dic)
 
@@ -505,4 +530,46 @@ def disable_vote(request):
     for buff in player.buffs:
         if buff.type == str(BuffType.Can_not_vote):
             return False
+    return True
+
+
+@api_view(['POST', 'GET'])
+def cancel_by_mayor(request):
+    user = request.user
+    player = Player.objects.get(user=user)
+    if player.role.name != RoleEnum.mayor.value:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    else:
+        player.limit -= 1
+        player.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST', 'GET'])
+def mayor_can_cancel(request):
+    user = request.user
+    player = Player.objects.get(user=user)
+    if player.limit == 0:
+        return False
+    return True
+
+
+@api_view(['POST', 'GET'])
+def exit_player_by_judge(request):
+    user = request.user
+    player = Player.objects.get(user=user)
+    if player.role.name != RoleEnum.judge.value:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+    else:
+        player.limit -= 1
+        player.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['POST', 'GET'])
+def judge_can_exit(request):
+    user = request.user
+    player = Player.objects.get(user=user)
+    if player.limit == 0:
+        return False
     return True
