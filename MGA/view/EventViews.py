@@ -168,3 +168,14 @@ def get_all_events_for_organization(request):
     serializer = EventSerializer(events, many=True)
     return Response(serializer.data)
 
+
+@api_view(['GET'])
+def get_event_fields(request):
+    field_list = ['date', 'capacity', 'title', 'description', 'private', 'org_id']
+    return Response(field_list)
+
+
+@api_view(['GET'])
+def get_organization_fields(request):
+    field_list = ['name']
+    return Response(field_list)

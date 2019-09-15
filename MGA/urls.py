@@ -22,6 +22,8 @@ urlpatterns = [
     path('getAuthenticatedOrgs/', EventViews.get_authenticated_organization, name='get_authenticated_orgs'),
     path('getOrgEvents/', EventViews.get_all_events_for_organization, name='get_org_events'),
     path('getUserFields/', UserViews.get_user_fields, name='get_user_fields'),
+    path('getEventFields/',EventViews.get_event_fields, name='get_event_fields'),
+    path('getOrgFields/',EventViews.get_organization_fields, name='get_org_fields'),
 
     path('events/', EventViews.EventList.as_view(), name='event_list'),
     path('events/<int:pk>', EventViews.event_details, name='event_details'),
