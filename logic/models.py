@@ -203,6 +203,8 @@ class Player(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, default=None)
     limit = models.IntegerField(default=100000, blank=True, null=True)
     wake_up_limit = models.IntegerField(default=0, blank=True, null=True)
+    vote = models.IntegerField(default=0,blank=True,null=True)
+
 
     def __str__(self):
         return self.user.username
