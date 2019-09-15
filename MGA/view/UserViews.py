@@ -78,3 +78,7 @@ def user_rating(request):  # az panj bede
     return Response(status=status.HTTP_200_OK)
 
 
+@api_view(['GET'])
+def get_user_fields(request):
+    field_list = ['username', 'password', 'email', 'name', 'bio', 'phoneNumber', 'city']
+    return Response(field_list)

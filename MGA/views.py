@@ -14,10 +14,7 @@ from MGA.view import UserViews
 from . import EmailSender, MakeRandomPassword
 from .models import User, Event, Organization, Friend, Notification, Reason, Report, Ban
 from .permissions import IsOwnerOrAdmin
-from .serializers import  NotificationSerializer, ReasonSerializer
-
-# TODO Question
-from .view.UserViews import put_user
+from .serializers import NotificationSerializer, ReasonSerializer
 
 
 @api_view(['POST'])
@@ -56,9 +53,9 @@ def signup_user(request):
         if response == status.HTTP_201_CREATED:
             user = User.objects.get(username=request.data.get('username'))
             # if request.data.get('device') == 'android':
-                # user.user_device = Device.objects.create(key=user.id, type=Device.DEVICE_TYPE_ANDROID, user=user)
+            # user.user_device = Device.objects.create(key=user.id, type=Device.DEVICE_TYPE_ANDROID, user=user)
             # elif request.data.get('device') == 'ios':
-                # Device.objects.create(key=user.id, type=Device.DEVICE_TYPE_IOS, user=user)
+            # Device.objects.create(key=user.id, type=Device.DEVICE_TYPE_IOS, user=user)
             login(request, user)
             EmailSender.EmailSender.send_email(email, "Click here to confirm " + user.confirm_url, 'Confirm')
             return Response(status=status.HTTP_200_OK)
