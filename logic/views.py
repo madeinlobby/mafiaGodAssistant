@@ -196,9 +196,10 @@ def role_awake(player, dictionary, role_name):
 def order_awake(game):  # todo
     dictionary = dict()
     players = game.player_set
+<<<<<<< Updated upstream
+=======
 
-
-
+>>>>>>> Stashed changes
 
     dictionary.update({str(RoleEnum.mafia): True})
 
@@ -442,10 +443,10 @@ def voting(request):  # TODO for elnaz
 
     return Response()
 
-
-
+<<<<<<< Updated upstream
+=======
        # make_buff(Buff.objects.get(name=aim), aims_dic[aim])
-
+>>>>>>> Stashed changes
 
 @api_view(['POST', 'GET'])
 def dead_with_another_person(request):

@@ -47,7 +47,7 @@ def add_organization(request):
 
 @api_view(['POST'])
 def add_admins(request):
-    admin_id = request.data.get('admin id')
+    admin_id = request.data.get('admin_id')
     organization_id = request.data.get('org_id')
     organization = Organization.objects.get(id=organization_id)
     if request.user != organization.creator:
@@ -75,7 +75,8 @@ def add_event(request):
                                      organization=organization
                                      )
         event.save()
-        return Response(status=status.HTTP_201_CREATED)
+        serializer = EventSerializer(event)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -99,7 +100,7 @@ def join_event(request, event_id):
 @api_view(['GET'])
 def get_public_events(request):
     events = Event.objects.filter(private=False)
-    serializer = EventSerializer(events)
+    serializer = EventSerializer(events, many=True)
     return Response(serializer.data)
 
 
@@ -141,3 +142,40 @@ def add_member(request):
     membership.save()
     user.save()
     return Response(status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_authenticated_organization(request):
+    user = request.user
+    organizations = list()
+    for org in Organization.objects.all():
+        if org.creator == user:
+            organizations.append(org)
+
+    serializer = OrganizationSerializer(organizations, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_all_events_for_organization(request):
+    org_id = request.data.get('ogr_id')
+    org = Organization.objects.get(id=org_id)
+    events = list()
+    for event in Event.objects.all():
+        if event.organization == org:
+            events.append(event)
+
+    serializer = EventSerializer(events, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def get_event_fields(request):
+    field_list = ['date', 'capacity', 'title', 'description', 'private', 'org_id']
+    return Response(field_list)
+
+
+@api_view(['GET'])
+def get_organization_fields(request):
+    field_list = ['name']
+    return Response(field_list)

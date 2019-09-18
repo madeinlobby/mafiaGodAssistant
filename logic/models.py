@@ -26,9 +26,9 @@ class WakeUpEnum(Enum):
 
 
 class Duration(Enum):
-    H24 = 24
-    H48 = 48
-    H12 = 12
+    H24 = 36
+    H48 = 60
+    H12 = 24
     always = 10000000
 
     @classmethod
@@ -62,6 +62,8 @@ class BuffType(Enum):
     One_shot = 'یک شات'
     Make_simple_mafia = 'تبدیل به مافیای ساده'
     mirror = 'آینه ای'
+    can_not_use_ability = 'نمیتواند کاری کند'
+    can_fail_voting = 'لغو رای گیری'
 
     @classmethod
     def choices(cls):
@@ -102,6 +104,9 @@ class AbilityEnum(Enum):
     one_shot = 'یک شات'
     make_simple_mafia = 'تبدیل به مافیای ساده'
     mirror = 'آینه ای'
+    can_not_use_ability = 'نمیتواند کاری کند'
+    can_fail_voting = 'لغو رای گیری'
+
 
     @classmethod
     def choices(cls):
@@ -145,6 +150,9 @@ class RoleEnum(Enum):
     save_angel = 'فرشته نجات'
     psychoanalyst = 'روانکاو'
     night_slept = 'شب خسب'
+    magician = 'جادوگر'
+    marshal = 'کلانتر'
+    judge = 'قاضی'
     killer = 'کشنده'  # it is not a role :)
 
     @classmethod
