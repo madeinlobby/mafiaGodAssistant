@@ -75,7 +75,7 @@ def add_event(request):
                                      organization=organization
                                      )
         event.save()
-        serializer = EventSerializer(event)
+        serializer = EventSerializer(event,context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     return Response(status=status.HTTP_403_FORBIDDEN)
@@ -100,7 +100,7 @@ def join_event(request, event_id):
 @api_view(['GET'])
 def get_public_events(request):
     events = Event.objects.filter(private=False)
-    serializer = EventSerializer(events, many=True)
+    serializer = EventSerializer(events, many=True,context={'request': request})
     return Response(serializer.data)
 
 
@@ -126,7 +126,7 @@ def search_event(request):
         elif search_item == 4:
             events = Event.objects.filter(date__month=now().month)
 
-        serializer = EventSerializer(events)
+        serializer = EventSerializer(events,many=True,context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
     except:
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -165,7 +165,7 @@ def get_all_events_for_organization(request):
         if event.organization == org:
             events.append(event)
 
-    serializer = EventSerializer(events, many=True)
+    serializer = EventSerializer(events, many=True,context={'request': request})
     return Response(serializer.data)
 
 

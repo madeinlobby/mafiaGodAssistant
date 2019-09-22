@@ -62,12 +62,7 @@ class EventSerializer(serializers.ModelSerializer):
     members = UserSerializer(read_only=True, many=True)
     join_url = HyperlinkedIdentityField(
         view_name='MGA:join_event',
-        lookup_field='event_id'
-    )
-
-    confirm_url = HyperlinkedIdentityField(
-        view_name=''
-
+        lookup_field='id'
     )
 
     class Meta:
