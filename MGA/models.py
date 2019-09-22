@@ -40,7 +40,7 @@ class User(AbstractUser):
     bio = models.CharField(max_length=250, blank=True, null=True)
     phoneNumber = models.BigIntegerField()
     city = models.CharField(max_length=200, blank=True, null=True)
-    confirm = models.BooleanField(default=False, blank=True, null=True)
+    confirm = models.NullBooleanField(default=False, blank=True, null=True)
     rate = models.OneToOneField(Rate, related_name='u_rate', on_delete=models.CASCADE, blank=True, null=True)
     # user_device = models.OneToOneField(Device, on_delete=models.CASCADE, default=None, blank=True, null=True,
     #                                    related_name='user_device')

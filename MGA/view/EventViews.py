@@ -47,7 +47,7 @@ def add_organization(request):
 
 @api_view(['POST'])
 def add_admins(request):
-    admin_id = request.data.get('admin id')
+    admin_id = request.data.get('admin_id')
     organization_id = request.data.get('org_id')
     organization = Organization.objects.get(id=organization_id)
     if request.user != organization.creator:
