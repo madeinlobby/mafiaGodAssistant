@@ -12,8 +12,8 @@ urlpatterns = [
     path('chat/', include('chat.urls'), name='chat'),
     path('logic/', include('logic.urls'), name='logic'),
 
-    path('resetPassword/', views.reset_password, name='reset_password'),
-    path('changPassword/', views.change_password, name='change_password'),
+    path('reset_password/', views.reset_password, name='reset_password'),
+    path('chang_password/', views.change_password, name='change_password'),
     path('login/', views.login_user, name='login'),
     path('logout/', views.logout_user, name='logout'),
     path('signup/', views.signup_user, name='signup')
